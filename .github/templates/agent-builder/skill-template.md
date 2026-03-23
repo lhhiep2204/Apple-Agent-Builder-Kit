@@ -1,0 +1,56 @@
+---
+name: <skill-folder-name>
+description: "Use when: <specific situations, keywords, or trigger phrases that should invoke this skill>."
+---
+
+# <Skill Name>
+
+## Purpose
+
+<What this skill enables and why it exists>
+
+## Use Cases
+
+- <Use case 1>
+- <Use case 2>
+
+## Apple Scope
+
+- <Platforms or project types>
+- <Technical defaults>
+
+## Workflow
+
+### 1. Understand
+- <Gather the minimum information needed>
+
+### 2. Decide
+- <Decision criteria>
+
+### 3. Act
+- <Implementation or workflow steps>
+
+### 4. Validate
+- <Quality checks>
+
+### 5. Audit
+- <How to challenge weak output>
+
+## Collaboration And Reuse
+
+- Used by: <Which agents or prompts should rely on this skill>
+- Upstream inputs: <What the calling agent must already know or provide>
+- Downstream outputs: <What artifacts, decisions, or reports this skill helps produce for the next step>
+- Handoff checkpoints: <Where this skill influences multi-agent workflow transitions>
+- Pass criteria: <What conditions this skill helps a caller satisfy before moving forward>
+- Revise criteria: <What findings should send work back for more iteration>
+- Blocked criteria: <What should stop the workflow and require escalation>
+
+## Deliverables
+
+- <Artifact 1>
+- <Artifact 2>
+
+## Anti-Patterns
+
+- <What not to do>

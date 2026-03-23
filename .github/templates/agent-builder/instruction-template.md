@@ -1,0 +1,25 @@
+---
+description: "Use when <file pattern or workflow scope>."
+applyTo: "<narrow glob pattern>"
+---
+
+# <Instruction Name>
+
+## Intent
+
+<What should hold true whenever this instruction applies>
+
+## Rules
+
+- <Rule 1>
+- <Rule 2>
+
+## Quality Bar
+
+- <Check 1>
+- <Check 2>
+
+## Avoid
+
+- <Anti-pattern 1>
+- <Anti-pattern 2>
