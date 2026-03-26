@@ -11,7 +11,7 @@
 
 ### Mandatory Sources
 - https://code.visualstudio.com/docs/copilot/customization/custom-agents — confirmed current VS Code custom-agent fields and behavior for `agents`, `handoffs`, `user-invocable`, `disable-model-invocation`, scoped hooks, tool-priority rules, and workspace discovery
-- https://code.visualstudio.com/docs/copilot/customization/copilot-customization-cheat-sheet — confirmed the full primitives overview: instructions (always-on), skills (on-demand), agents (role), prompts (entry points), hooks (gates)
+- https://docs.github.com/en/copilot/reference/customization-cheat-sheet — confirmed the full primitives overview: instructions (always-on), skills (on-demand), agents (role), prompts (entry points), hooks (gates)
 - https://docs.github.com/en/copilot/tutorials/coding-agent/get-the-best-results — confirmed current best-practice emphasis on well-scoped tasks, explicit acceptance criteria, repo-grounded validation guidance, and the role of repository and path-specific instructions
 - https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-custom-agents — confirmed the stable conceptual model for custom agents, repository placement, and cross-surface behavior
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-custom-agents — confirmed current creation flow, filename constraints, cross-IDE behavior, and the expectation that agent profiles encode concrete tools and instructions
@@ -19,7 +19,7 @@
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/use-hooks — confirmed `.github/hooks/` placement, `version: 1` expectations, troubleshooting guidance, and debugging practices for hook scripts
 - https://docs.github.com/en/copilot/reference/hooks-configuration — confirmed hook event types, input and output behavior, timeout defaults, and that only `deny` is currently processed from customer `preToolUse` output
 - https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot — confirmed repository-wide and path-specific instruction behavior, `excludeAgent`, precedence, and support boundaries
-- https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/about-agent-skills — confirmed skills are folders of instructions, scripts, and resources loaded when relevant based on description; multiple focused skills preferred over monolithic ones
+- https://docs.github.com/en/copilot/concepts/agents/about-agent-skills — confirmed skills are folders of instructions, scripts, and resources loaded when relevant based on description; multiple focused skills preferred over monolithic ones
 - https://docs.github.com/en/copilot/how-tos/use-copilot-agents/coding-agent/create-skills — confirmed skill creation flow and the guidance "use skills for more detailed instructions that Copilot should only access when relevant"
 
 ### Optional Sources

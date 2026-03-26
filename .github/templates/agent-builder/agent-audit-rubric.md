@@ -16,7 +16,7 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 
 1. **Discovery**: descriptions concrete, keyword-rich, likely to match real user requests?
 2. **Architecture**: each artifact necessary? Conductor/specialist split justified? Bundle complete for workflow?
-3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification is non-blocking (options + default continuation), not ask-and-stop?
+3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Agents that interact with external services include explicit MCP tool preference (prefer MCP over URL fetching)? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification is non-blocking (options + default continuation), not ask-and-stop?
 4. **Apple Specificity**: platforms, frameworks, concurrency, testing, accessibility explicit? Generated agents aligned to the project's actual technology profile, not kit fallback defaults?
 5. **Scope Discipline**: files single-purpose? `applyTo` narrow? No drift risk?
 6. **Ecosystem Coherence**: no naming conflicts? No role overlap? Existing agents evaluated?
@@ -30,9 +30,22 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 - No intermediate files left in target project
 - `copilot-instructions.md` uses standard filename (not prefixed)
 - Kit's own `copilot-instructions.md` excluded from target project
-- Frontmatter has valid YAML with no diagnostics
-- `agents` frontmatter (if present) uses exact agent display names, never file names like `*.agent.md`
+
+## YAML Frontmatter Validity
+
+- Frontmatter has valid YAML with no editor diagnostics or schema warnings
+- `agents` field (if present) MUST use inline JSON-style array with exact agent display names: `agents: ["Name A", "Name B"]` — NEVER block list syntax (`- item`), NEVER filenames like `*.agent.md` or `*.agent`
+- `description` field MUST be a double-quoted string
+- `name` field MUST be an unquoted string matching the intended display name
+- Only documented frontmatter keys used (`name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`)
+- No `tools` or `mcp-servers` unless user explicitly requested constrained tool access
 - Generated non-template files contain no unresolved placeholders like `<...>`
+- All generated files in the same bundle use consistent YAML formatting conventions
+
+## MCP Tool Usage Guidance
+
+- Agents that interact with external services (issue trackers, project management, CI/CD, documentation) include explicit instructions to prefer MCP tools over URL fetching
+- No language that could be misread as "do not use MCP" — the guidance is "do not restrict MCP in frontmatter"
 
 ## Pass Rule
 

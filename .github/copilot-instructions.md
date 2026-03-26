@@ -25,7 +25,8 @@ When changing generation behavior or templates:
 - keep each customization file single-purpose
 - keep descriptions concrete and discoverable; they are the discovery surface
 - keep `applyTo` narrow and intentional
-- do not add hooks, MCP configuration, or extra artifacts unless they materially improve execution quality
+- do not add hooks, MCP frontmatter restrictions, or extra artifacts unless they materially improve execution quality
+- generated agents should leverage MCP tools at runtime when configured — \"avoid MCP in frontmatter\" means do not restrict MCP access, not do not use MCP
 - ensure generated agents align to the target project's actual technology stack (Swift version, UI framework, concurrency model), not kit fallback defaults
 - derive simulator destinations from project deployment target + Xcode version; never hardcode device models
 - when a linter is configured, ensure verify-fix loops use `--strict` flag to catch warnings, not just errors

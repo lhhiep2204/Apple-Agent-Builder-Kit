@@ -63,4 +63,8 @@ Final quality expectation: zero open findings (including minor) and zero editor 
 - Separate technical and functional reviewers
 - For established projects: preserve working behavior while fixing weak areas
 - Skip full 95% confidence interview — rely on analysis first
-- Generated agents do not declare frontmatter `tools` or `mcp-servers` unless explicitly requested
+- Generated agents do not declare frontmatter `tools` or `mcp-servers` unless explicitly requested — this keeps all tools including MCP servers accessible
+- Generated agents that interact with external services (issue trackers, project management, CI/CD) MUST include explicit instructions to prefer MCP tools over URL fetching
+- `agents` frontmatter MUST use inline JSON-style array with exact display names: `agents: ["Name A", "Name B"]` — NEVER block list syntax, NEVER filenames
+- `description` frontmatter MUST be a double-quoted string with trigger phrases
+- All generated files in the same bundle MUST use consistent YAML formatting

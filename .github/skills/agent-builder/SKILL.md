@@ -34,7 +34,8 @@ iOS, iPadOS, macOS, visionOS, watchOS, and tvOS.
 - Multi-agent architecture when quality depends on distinct phases
 - Hard audit gate for non-trivial bundles
 - Refresh official Copilot documentation before any generation flow
-- Generated agents must not declare `tools` or `mcp-servers` in frontmatter by default; leave tool surface unmanaged unless the user explicitly requests constraints
+- Generated agents must not declare `tools` or `mcp-servers` in frontmatter by default; omitting these fields keeps all tools (including user-configured MCP servers) accessible
+- Generated agents must include explicit MCP tool preference guidance for any agent that may interact with external services — "do not restrict MCP in frontmatter" must not be misread as "do not use MCP at runtime"
 - Align generated agents to the project's actual technology profile — never assume latest defaults when the codebase shows otherwise
 - When invoked directly: confidence ≥ 95% before generation
 - When invoked via prompt: skip confidence interview, analyze directly
@@ -156,12 +157,20 @@ Full specification and minimums table in `apple-quality-auditor.agent.md`.
 ### Agent
 - Mission, use-when, non-goals, decision rules, output contract
 - Collaboration model: inputs consumed, outputs produced, hand-off criteria, auto-return vs escalation conditions
-- **All agents**: structured clarification questions (what to ask, when to skip because the codebase answers), anti-patterns list, structured output contract
+- **All agents**: structured clarification questions (what to ask, when to skip because the codebase answers), anti-patterns list, structured output contract, explicit MCP tool preference for external service access (issue trackers, project management, documentation platforms)
 - **Implementor**: pre-impl checklist (trace existing flow, confirm business rules, check duplication, scope affected files), code reasoning (explain business justification before writing each file), incremental implementation (verify data → business → API in chunks), verify-fix loop (build → targeted tests for touched feature/suites → lint, max 3 retries, stop and report). Verify-fix loop must treat lint warnings as failures when a linter is configured — use `--strict` or equivalent flag. Build/test commands must use the analyzer-detected simulator destination, never a hardcoded device model. Full test-suite runs are conditional, not default: run full suite only when risk is high (shared/core modules touched, broad dependency impact, release/CI gate, or explicit user request)
 - **Reviewer**: deep context gathering (full file content + dependency graph + callers, not just diffs), short-circuit on functional blockers before running technical review, severity-driven verdicts with actionable code-level findings
 - **Investigator**: structured as-is/to-be analysis with file and line references, to-be change table (component, change type, file, business reason), impact matrix with severity levels, scenario mapping
 - **Orchestrator**: intent-based auto-routing to sub-agents so users never manually pick agents, mandatory confirmation checkpoint between investigation and implementation, structured completion report, micro-change lane for low-risk edits, reviewer conflict resolution, inter-agent iteration loops (implement → test → review → back to implement until review passes)
 - **Orchestrator clarification behavior**: never end the workflow after a clarification prompt alone; provide a decision menu, recommended default, and continue execution on a provisional track until user override
+
+### YAML Frontmatter Generation
+- `agents` field MUST use inline JSON-style array syntax with exact agent display names: `agents: ["Name A", "Name B"]` — NEVER use block list syntax (`- item`) and NEVER use filenames
+- `description` field MUST be a double-quoted string with concrete trigger phrases
+- `name` field MUST be an unquoted string matching the intended display name
+- Only emit frontmatter keys documented in current official Copilot documentation
+- Do not emit `tools` or `mcp-servers` unless explicitly requested
+- All generated files in the same bundle MUST use identical YAML formatting conventions
 
 ### Skill
 - Repeatable workflow with decision criteria and validation checks

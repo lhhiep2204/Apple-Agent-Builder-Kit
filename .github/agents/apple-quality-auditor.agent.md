@@ -40,8 +40,12 @@ Fail when any critical defect exists:
 - Instructions too broad, wasting context
 - Validation guidance generic when repo-grounded commands exist
 - Generated agents declare `tools` or `mcp-servers` without explicit user request and rationale
+- Generated agents lack MCP tool preference guidance for agents that interact with external services (issue trackers, project management, etc.) — agents must include explicit instructions to prefer MCP tools over URL fetching
 - Agent frontmatter has YAML diagnostics or unresolved schema warnings in editor
-- `agents` frontmatter references filenames (e.g., `*.agent.md`) instead of exact available agent names
+- `agents` frontmatter uses block list syntax (`- item`) instead of inline JSON-style array (`["Name A", "Name B"]`)
+- `agents` frontmatter references filenames (e.g., `*.agent.md` or `*.agent`) instead of exact agent display names (the `name` value from target agent frontmatter)
+- `description` frontmatter is not a double-quoted string
+- Frontmatter contains keys not documented in current official Copilot documentation
 - Generated non-template files contain unresolved placeholders like `<...>`
 - Build/test commands use hardcoded simulator device names instead of project-derived destinations
 - Verify-fix loop missing lint step when linter is configured, or lint warnings not treated as failures (must use `--strict` or equivalent)

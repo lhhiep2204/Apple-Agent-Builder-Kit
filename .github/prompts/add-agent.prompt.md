@@ -36,7 +36,7 @@ Describe the agent you want to add below. Include: workflow or role, target user
 2. **Analyze** — Scan existing agents, skills, instructions, prompts. Understand conventions the new agent must follow. Identify overlap/gaps.
 3. **Assess** — Current ecosystem shape, overlap risks, integration needs, conductor routing changes if needed.
 4. **Clarify only if needed** — Ask minimum targeted questions for missing critical facts.
-5. **Generate** — Create new agent with: no role overlap, consistent naming, project-derived prefix, real conventions, supporting files (skill, instruction, prompt, template) when needed.
+5. **Generate** — Create new agent with: no role overlap, consistent naming, project-derived prefix, real conventions, supporting files (skill, instruction, prompt, template) when needed. Follow YAML frontmatter determinism rules: `agents` uses inline array with display names, `description` is double-quoted, no `tools`/`mcp-servers` unless requested. Include MCP tool preference for external service access.
 6. **Audit** — All dimensions + ecosystem coherence. If `REVISE`, fix until `PASS`.
 7. **Deliver** — Assessment, agent file(s), integration guide, changes needed to existing agents.
 

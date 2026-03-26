@@ -22,6 +22,8 @@ Apply these rules when editing Copilot customization files in this repository.
 - Keep `applyTo` narrow; avoid broad patterns unless the rule truly applies everywhere in scope
 - When authoring path-specific instructions, consider whether `excludeAgent` is needed to limit the instruction to coding-agent or code-review usage
 - When authoring custom agents for VS Code workflows, keep surface-specific fields such as `agents`, `handoffs`, `user-invocable`, and `disable-model-invocation` aligned with current official documentation
+- `agents` frontmatter MUST use inline JSON-style array with exact display names (`agents: [\"Name A\", \"Name B\"]`), NEVER block list syntax or filenames
+- `description` frontmatter MUST be a double-quoted string
 
 ## Writing Standard
 

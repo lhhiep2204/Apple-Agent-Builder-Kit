@@ -45,6 +45,16 @@ Generated agents must match the target project's actual technology profile — n
 - Reference the project's actual coding style, patterns, and architecture — not idealised latest-version patterns
 - When the project is in a migration state (e.g., UIKit → SwiftUI, Swift 5 → 6), note both the current and target state explicitly so generated agents handle transitional code correctly
 
+## Tool and MCP Usage Guidance
+
+Generated agents must preserve broad tool access and actively leverage all available tools:
+
+- Do not declare `tools` or `mcp-servers` in frontmatter — this keeps all tools (including user-configured MCP servers) available by default
+- "Avoid `mcp-servers` in frontmatter" means "do not restrict MCP access in the YAML header" — it does NOT mean "do not use MCP tools at runtime"
+- Generated agents MUST include explicit guidance to prefer MCP tools over URL fetching when accessing external services (issue trackers, project management, CI/CD, documentation platforms, etc.)
+- When generating any agent that may interact with external services, include a tool preference rule: "When MCP servers are configured for external services (Jira, Linear, GitHub, Confluence, etc.), use the MCP tools to access those services. Do not attempt to fetch URLs directly for services that require authentication — use the appropriate MCP tool instead."
+- The implementor, investigator, business analyst, and orchestrator agents are especially likely to need external service access — ensure their instructions include MCP tool preference
+
 ## Role Design Rules
 
 - Start from the requested workflow, not a fixed file list
@@ -52,7 +62,6 @@ Generated agents must match the target project's actual technology profile — n
 - Split roles only when specialization improves quality materially
 - Prefer conductor + subagents when analysis, generation, and audit are distinct
 - Generated agents do NOT use the "Apple" prefix — reserved for the kit's own subagents
-- Generated agents must not declare `tools` or `mcp-servers` in frontmatter unless the user explicitly asks for constrained tool access
 
 ## Orchestrator Design Pattern
 
@@ -128,16 +137,32 @@ When generating implementor agents with verify-fix loops:
 Each non-trivial artifact must clearly define: mission, use-when, non-goals, operating model, decision rules, output contract, risks and anti-patterns.
 
 Generated agents should preserve broad execution capability by default:
-- Do not include `tools` frontmatter in generated agent files
-- Do not include `mcp-servers` frontmatter in generated agent files
+- Do not include `tools` frontmatter in generated agent files — omitting `tools` keeps ALL tools available, including MCP server tools the user has configured
+- Do not include `mcp-servers` frontmatter in generated agent files — this preserves access to all user-configured MCP servers without restriction
 - Encode behavior constraints in natural-language instructions and decision rules instead of hard tool allowlists
+- Include explicit MCP tool preference guidance in agents that interact with external services (see "Tool and MCP Usage Guidance" above)
 
 Generated agent file hygiene requirements:
 - Emit valid YAML frontmatter only; avoid malformed quoting or mixed list syntax that triggers editor diagnostics
 - Omit `agents` frontmatter entirely when subagents are not needed
-- If `agents` is used, list exact available agent display names, never filenames like `*.agent.md`
-- Never leave unresolved placeholders like `<...>` in generated non-template files
 - Before finalizing, verify no editor diagnostics remain in generated agent files
+- Never leave unresolved placeholders like `<...>` in generated non-template files
+
+**YAML Frontmatter Determinism Rules** (MUST follow exactly for every generated agent file):
+
+1. **`agents` field format**: MUST use inline JSON-style array with exact display names. NEVER use block list (`-` items), NEVER use filenames.
+   - Correct: `agents: ["Display Name A", "Display Name B"]`
+   - Wrong: `agents:\n  - some-file.agent` or `agents:\n  - Display Name A`
+   - The display name is the `name` frontmatter value of the target agent, not its filename
+2. **`description` field format**: MUST be a double-quoted string. Include trigger phrases and concrete capability keywords.
+   - Correct: `description: "Implement features for ProjectX..."`
+   - Wrong: `description: Implement features` (unquoted)
+3. **`name` field format**: MUST be an unquoted string matching the agent's intended display name.
+   - Correct: `name: ProjectX Implementor`
+4. **No undeclared properties**: Only emit frontmatter keys supported by current official Copilot documentation: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`
+5. **No `tools` or `mcp-servers`** unless the user explicitly requests constrained tool access
+6. **String quoting**: Quote all string values that contain colons, commas, brackets, or special YAML characters
+7. **Consistency across files**: All generated files in the same bundle MUST use the same YAML formatting conventions
 
 Generated agents should use a continuation-first clarification pattern:
 - Ask only when ambiguity is material
