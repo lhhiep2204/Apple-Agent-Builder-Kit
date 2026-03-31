@@ -41,7 +41,7 @@ Build a **role comparison matrix** showing each agent's role, responsibilities, 
 
 ### Agent Naming Conventions
 Identify the naming patterns used by existing agents:
-- agent name pattern (e.g., role-based: "Test Specialist", "Technical Reviewer")
+- agent name pattern (e.g., role-based: "Test Specialist", "Code Reviewer")
 - file name convention (e.g., kebab-case: `test-specialist.agent.md`)
 - description style (e.g., "[Action verb] for [Project]. [Key responsibilities].")
 
@@ -121,8 +121,31 @@ This profile is the authoritative source for the generator. Generated agents mus
 - lifecycle states
 - invariants and constraints
 - naming patterns used throughout the codebase
+- bounded contexts or business domains present in the codebase
+- cross-domain dependencies, hand-offs, or lifecycle transitions between domains
+- existing business knowledge artifacts in `.github/`, `docs/`, ADRs, specs, or READMEs
+- whether business rules are concentrated in a few modules or spread across many features
+- whether the project's business complexity warrants extra persistence beyond `copilot-instructions.md`
 
-### 10. Copilot Instructions Content
+For business knowledge persistence, recommend the lightest artifact that fits the project:
+- `copilot-instructions.md` only for small/simple products
+- domain-scoped instructions when rules map cleanly to files or modules
+- business domain registry / domain map asset when multiple domains, lifecycle-heavy flows, or cross-domain dependencies need shared reference
+- business-domain skill only when multiple agents will reuse the same repeatable business-analysis workflow
+
+### 10. Drift Detection
+
+When analyzing an established project (agents already exist), check for staleness signals:
+- Agents referencing files, modules, or targets that no longer exist in the codebase
+- Agents using API patterns, framework conventions, or Swift version assumptions that the project has moved away from
+- Instructions with `applyTo` patterns that match no current files
+- Skills referencing workflows or tools the project no longer uses
+- `copilot-instructions.md` describing architecture, conventions, or domain terms that have changed
+- Timestamps or version references that are clearly outdated
+
+For each drift signal found, report: which file, what is stale, what the current state is, and recommended fix. Include a **drift summary** in the output with a count of stale references and severity assessment (cosmetic, misleading, or harmful).
+
+### 11. Copilot Instructions Content
 Extract the facts that belong in the project's `copilot-instructions.md` — broad context that every agent and Copilot interaction should share:
 - project overview and purpose
 - architecture summary (layer model, navigation, state management, DI)
@@ -131,6 +154,7 @@ Extract the facts that belong in the project's `copilot-instructions.md` — bro
 - domain glossary and business rule summary
 - general coding standards and quality expectations
 - if the project already has a `copilot-instructions.md`, evaluate its quality and identify gaps to fill
+- if richer business artifacts are recommended, treat `copilot-instructions.md` as the concise index and summary, not the full dumping ground for every rule
 
 ## Output Contract
 
@@ -147,9 +171,11 @@ The brief must include:
 - recommended collaboration topology: which agents should hand work to which other agents, what order they should run in, and where iteration loops should happen automatically
 - hand-off contract candidates: the minimum inputs, outputs, and pass/fail criteria each specialist should exchange with upstream or downstream agents
 - candidate skill domains with cross-agent usage mapping
+- business knowledge persistence recommendation: where business context should live (`copilot-instructions.md`, domain-scoped instructions, business domain registry / domain map, business-domain skill) and why
 - candidate prompt entry points (primary + secondary)
 - candidate template/checklist hand-off moments
 - linting tool detection and recommended handling (instruction vs hook)
+- **drift summary** with count of stale references, severity assessment, and recommended fixes (for established and mixed projects)
 - recommended content for `copilot-instructions.md` creation or update
 - candidate instruction scopes covering distinct convention domains (implementation, testing, UI, data layer, etc.)
 - candidate narrow instruction scopes
@@ -166,6 +192,7 @@ The brief must include:
 - assuming all Apple projects are SwiftUI-only
 - ignoring existing UIKit or AppKit constraints
 - focusing on files without extracting business rules and team workflow
+- recommending a business domain registry or business-domain skill without evidence that the project's domain complexity warrants it
 - producing a long inventory with no decision-ready synthesis
 - skipping existing agent scan and generating duplicates
 - analyzing only the codebase without considering existing agent quality

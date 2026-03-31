@@ -15,7 +15,7 @@ Use `.github/templates/agent-builder/agent-audit-rubric.md` as a quick-reference
 |-----------|---------|-------------|
 | `copilot-instructions.md` | 1 | Standard filename, project-tailored broad context |
 | Conductor agent | 1 | Orchestrates the full workflow |
-| Specialist agents | 3+ | Cover implementation, testing, and review at minimum |
+| Specialist agents | 3+ | Cover implementation, testing, and review at minimum. Code Reviewer is the default review role (combined technical + functional). |
 | Skills | 2+ | Delivery workflow (mandatory) + domain-specific |
 | Instructions | 2+ | Implementation + test conventions at minimum |
 | Prompts | 2+ | Primary delivery + secondary entry point |
@@ -27,13 +27,22 @@ Bundles below these minimums are Standard or Lean, not Full.
 ## Audit Standard
 
 Fail when any critical defect exists:
+- Generation Principles not encoded in generated agents — every generated agent must include the 8 non-negotiable principles from SKILL.md as actionable instructions
+- Context optimization violated: `copilot-instructions.md` bloated beyond necessity, static rules duplicated across agents instead of centralized, hand-offs repeat full context instead of delta summaries
+- Bundle evolution guidance missing from generated `copilot-instructions.md`
+- Drift indicators present: agents reference removed files, outdated APIs, or abandoned conventions without correction
 - Documentation refresh was skipped, used broken URLs, or the brief was persisted in target project
 - Descriptions too weak for discovery
 - Primitives redundant or missing (under-built for workflow complexity)
+- Domain skills created for technology areas with thin project usage signal, or skills that only one agent uses — domain knowledge for single-agent or thin-signal domains belongs in agent instructions or instruction files, not dedicated skills
+- Swift Skills Reader brief used exhaustively (one skill per community domain) instead of selectively based on project signal
+- Project has rich business-domain complexity, but the bundle stores business rules only as scattered agent prose or an overstuffed `copilot-instructions.md`, with no appropriate shared business knowledge artifact
+- A business domain registry, domain map, domain-scoped instructions, or business-domain skill was generated, but the relevant agents do not explicitly consume it in inputs, hand-offs, or decision rules
 - Full kit missing required supporting artifacts without credible justification
 - Behavioral patterns missing for the role — see SKILL.md artifact requirements for the complete checklist per role (implementor verify-fix loop, reviewer deep context, investigator impact matrix, orchestrator auto-routing, etc.)
 - Collaboration lanes undefined for main use cases: hand-off order unclear, contracts missing, iteration loops absent
 - Orchestrator clarification behavior stops after asking questions, without choice options and a continuation path
+- Orchestrator or kit workflow terminates mid-session without completing all generation — single-session completion rule violated
 - Roles overlap heavily without adding quality
 - Apple assumptions vague or inconsistent
 - Generated agents assume kit fallback defaults (e.g., Swift 6, strict concurrency, SwiftUI-first) when the project's actual technology profile differs
@@ -64,7 +73,7 @@ Descriptions concrete, keyword-rich, role-specific? Users naturally phrase reque
 Conductor/specialist split justified? Primitive mix comprehensive and coherent? Apple role families add value?
 
 ### 3. Execution Quality
-Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Documentation refresh applied? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification with options plus continuation defaults?
+Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Documentation refresh applied? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification with options plus continuation defaults? Shared business knowledge stored in the right primitive and explicitly consumed by the agents that need it?
 
 ### 4. Apple Specificity And Technology Alignment
 Platforms, frameworks, concurrency, testing, accessibility, localization explicit? Generated agents aligned to the project's actual technology profile from the analyzer (not kit fallback defaults)? If the project uses an older Swift version, less strict concurrency, or UIKit-primary architecture, do the generated agents reflect that accurately instead of assuming latest defaults?
@@ -73,7 +82,7 @@ Platforms, frameworks, concurrency, testing, accessibility, localization explici
 Files single-purpose? `applyTo` narrow? Bundle can evolve without drift?
 
 ### 6. Ecosystem Coherence
-New agents integrate with existing? Naming consistent? Overlap resolved? Dirty worktree handled safely?
+New agents integrate with existing? Naming consistent? Overlap resolved? Dirty worktree handled safely? For established projects: drift detection performed? Stale references identified and corrected?
 
 ### 7. Context Efficiency
 Do outputs stay phase-bounded and concise? Are hand-offs summarized as deltas with file references instead of repeated full-context prose? Are static rules centralized in instructions/skills rather than duplicated across every artifact?

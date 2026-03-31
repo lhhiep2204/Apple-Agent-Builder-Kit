@@ -15,7 +15,7 @@ Produce the most complete and effective bundle that materially improves the user
 
 ## Context-Aware Generation
 
-Before generating, consume the analyzer's output, the documentation refresh brief from `.github/templates/agent-builder/copilot-doc-source-registry.md`, and respect project state:
+Before generating, consume the analyzer's output, the in-session Copilot documentation refresh brief (produced by `Apple Copilot Docs Refresher`), and the in-session Swift platform skills brief (produced by `Apple Swift Skills Reader`), then respect project state:
 
 **Greenfield** (no agents): generate the full bundle from scratch with roles designed for this codebase.
 
@@ -77,6 +77,35 @@ When generating a conductor/orchestrator:
 9. Define workflow lanes beyond delivery when they are major user journeys (planning, investigation-only, review-only, test-only)
 10. Include structured completion reports
 11. Use non-blocking clarification: provide decision options (with a recommended default and free-input option), then continue on a provisional default path rather than ending the task after asking
+12. **Single-session completion**: the orchestrator must complete the entire delegated workflow within one session — never abandon mid-workflow, never defer to "continue later." When user input is genuinely needed, present structured options and wait for the response, then resume. When a sub-agent fails or returns REVISE, fix and retry in the same session. When blocked, ask the user immediately and continue after receiving the answer.
+
+## Domain Knowledge Placement Rule
+
+The Swift Skills Reader brief provides community domain knowledge per technology area (SwiftUI, SwiftData, Concurrency, Testing, etc.). Before generating, decide where each domain’s knowledge belongs — do not default to creating a skill:
+
+| Condition | Action |
+|-----------|--------|
+| Domain heavily used in project AND multiple agents need it | Create a dedicated domain skill, bidirectionally linked |
+| Domain used in project but only one agent needs it | Embed in that agent’s instructions |
+| Domain knowledge is a small set of rules | Embed in the matching instruction file (`applyTo` the relevant path) |
+| Domain lightly used or thin signal in codebase | Skip — do not create a skill or bloat instructions |
+
+Do not mirror the community skills repo structure (one skill per domain) onto the generated bundle. The Swift Skills Reader brief is a domain knowledge input — use it selectively based on project signal from the analyzer, not exhaustively because a community skill exists for it.
+
+## Business Knowledge Placement Rule
+
+The analyzer extracts business rules, domain vocabulary, lifecycle states, invariants, and cross-domain dependencies. Decide where that shared business knowledge belongs before generating the bundle:
+
+| Project signal | Where business knowledge belongs |
+|----------------|----------------------------------|
+| Small/simple product; rules fit in a concise shared summary | `copilot-instructions.md` only |
+| Business rules map cleanly to a few paths or modules | Domain-scoped instructions plus a short index in `copilot-instructions.md` |
+| Multiple business domains, lifecycle-heavy workflows, or cross-domain dependencies that several agents must reference | Reusable business domain registry / domain map asset plus a short index in `copilot-instructions.md` |
+| Multiple agents need the same repeatable business-analysis workflow or rule-interpretation process | Dedicated business-domain skill, optionally paired with domain-scoped instructions or a registry asset |
+
+Do not create a business-domain artifact by default. Create it only when the analyzer shows that `copilot-instructions.md` alone would become too thin to be useful or too dense to stay maintainable.
+
+Do not add a dedicated kit subagent for business-domain synthesis by default. The analyzer already owns extraction of business context; the generator owns persistence decisions. Add another specialization only when the workflow becomes distinct enough to justify it.
 
 ## Primitive Selection
 
@@ -103,6 +132,7 @@ For each convention the analyzer discovered:
 - State decision rules based on the convention, not generic guidance
 - Use analyzer-discovered `applyTo` candidates and validation commands
 - Use the Technology Alignment Profile as the authoritative source for Swift version, concurrency model, UI framework, testing framework, and persistence decisions — never fall back to kit defaults when project actuals are known
+- If the analyzer recommends a business domain registry, domain map, domain-scoped instructions, or business-domain skill, wire it explicitly into the generated agents' collaboration model. Business Analyst, Investigator, Implementor, Code Reviewer, and Dev Orchestrator must list it in their upstream inputs, downstream outputs, or decision rules. Do not assume agents will discover and use it implicitly.
 
 ## Build And Validation Command Rules
 
@@ -131,6 +161,22 @@ When generating implementor agents with verify-fix loops:
 - Never prefix `copilot-instructions.md` — always use the standard filename
 - Do not copy the kit's own `copilot-instructions.md` into the target project
 - If the project name is ambiguous, ask one targeted naming question
+
+## Generation Principles Requirement
+
+Every generated agent must embed the Generation Principles from SKILL.md into its base instructions. These are non-negotiable behavioral rules (understand before changing, confirm business logic, no duplicate validation, respect boundaries, clarify before acting, verify before claiming, prefer simplicity, explain decisions). Do not paraphrase loosely — encode each principle as an actionable instruction the agent will follow.
+
+## Context Optimization Requirement
+
+Apply the Context Optimization Rules from SKILL.md when generating bundles:
+- Distribute context across the three-layer model: `copilot-instructions.md` (broad project facts), instructions (narrow file-scoped rules), agent instructions (role-specific workflows)
+- Target 80-150 lines for generated `copilot-instructions.md`. Every line must earn its place.
+- Do not duplicate static rules across multiple agents — centralize them in instructions or skills
+- Hand-offs between agents should use delta summaries with file references, not repeated full context
+
+## Bundle Evolution Requirement
+
+Every generated `copilot-instructions.md` must include a brief "Bundle Maintenance" section following the Bundle Evolution Guidance in SKILL.md: when to update agents, when to promote patterns into instructions, when to add new instructions, and how to detect drift. Keep it concise (10-15 lines).
 
 ## Generation Requirements
 
@@ -206,3 +252,7 @@ Do not block generation for unrelated modified/untracked files. Preserve unrelat
 - Descriptions too broad to trigger reliably
 - Generating agents that overlap with existing agents without resolving
 - Ignoring existing naming conventions
+- Creating a domain skill for every technology area in the Swift Skills Reader brief regardless of project usage — only create a domain skill when it earns its place through multi-agent reuse and strong project signal
+- Embedding domain knowledge from the skills brief into every agent’s instructions when it is only relevant to one, bloating context
+- Generating a business domain registry, domain map, or business-domain skill that no generated agent explicitly consumes
+- Leaving shared business rules scattered across agent prose only, with no stable shared source for business-heavy projects

@@ -14,9 +14,10 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 
 ## Quick Checks
 
+0. **Generation Principles**: all 8 principles from SKILL.md encoded in every generated agent? Context optimization rules applied (three-layer model, concise copilot-instructions.md, no duplication)? Bundle evolution guidance present in generated `copilot-instructions.md`? No drift indicators (stale file refs, abandoned conventions)?
 1. **Discovery**: descriptions concrete, keyword-rich, likely to match real user requests?
-2. **Architecture**: each artifact necessary? Conductor/specialist split justified? Bundle complete for workflow?
-3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Agents that interact with external services include explicit MCP tool preference (prefer MCP over URL fetching)? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification is non-blocking (options + default continuation), not ask-and-stop?
+2. **Architecture**: each artifact necessary? Conductor/specialist split justified? Bundle complete for workflow? Domain skills created based on multi-agent reuse + strong project signal, not mirroring community repo structure? Domain knowledge for single-agent or thin-signal domains embedded in agent instructions or instruction files rather than separate skills? Business knowledge stored in the lightest shared primitive that fits the project's complexity, rather than always creating a registry/skill or always overloading `copilot-instructions.md`?
+3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Agents that interact with external services include explicit MCP tool preference (prefer MCP over URL fetching)? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification is non-blocking (options + default continuation), not ask-and-stop? Orchestrator includes single-session completion rule (never abandon mid-workflow, ask and wait when blocked)? If a business domain registry, domain map, domain-scoped instruction, or business-domain skill exists, do the relevant agents explicitly consume it?
 4. **Apple Specificity**: platforms, frameworks, concurrency, testing, accessibility explicit? Generated agents aligned to the project's actual technology profile, not kit fallback defaults?
 5. **Scope Discipline**: files single-purpose? `applyTo` narrow? No drift risk?
 6. **Ecosystem Coherence**: no naming conflicts? No role overlap? Existing agents evaluated?
@@ -27,6 +28,7 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 - Every template referenced by ≥1 agent/skill/prompt (no orphans)
 - Every skill referenced by ≥1 agent with bidirectional linking (no orphans)
 - Delivery workflow skill present (mandatory for full kits)
+- Business-domain artifacts, if generated, are referenced by the agents that need them (no orphaned business context)
 - No intermediate files left in target project
 - `copilot-instructions.md` uses standard filename (not prefixed)
 - Kit's own `copilot-instructions.md` excluded from target project

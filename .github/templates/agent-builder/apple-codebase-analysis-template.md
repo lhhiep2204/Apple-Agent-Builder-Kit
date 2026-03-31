@@ -111,6 +111,7 @@
 
 - feature delivery packet / handoff checklist:
 - investigation report template:
+- business domain registry / domain map:
 - planning or story-shaping packet:
 - validation plan or test packet:
 - review packet:
@@ -155,6 +156,15 @@ Generated agents must align to the "Project actual" column. Note deviations expl
 - business rules:
 - lifecycle states:
 - invariants:
+
+## Business Knowledge Persistence Recommendation
+
+- business complexity signal: <simple | moderate | complex>
+- current business knowledge artifacts:
+- recommended storage: <copilot-instructions only | domain-scoped instructions | business domain registry / domain map | business-domain skill + supporting instructions>
+- rationale:
+- agents that must consume it:
+- what should remain summarized in `copilot-instructions.md` versus live in dedicated artifacts:
 
 ## Recommended Copilot Instructions Content
 

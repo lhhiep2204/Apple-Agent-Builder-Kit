@@ -49,28 +49,35 @@ Use these as starting points when generating specific workflow assets. Adapt sec
 ### Planning / Story Packet
 
 **Produced by**: Business Analyst or Orchestrator planning lane
-**Consumed by**: Investigator, Implementor, Test Specialist, Reviewers
+**Consumed by**: Investigator, Implementor, Test Specialist, Code Reviewer
 **Sections**: Problem Statement, Scope and Non-Goals, Acceptance Criteria, Domain Rules and Edge Cases, Implementation Readiness Notes
 **Validation**: ACs are testable, scope explicit, downstream has enough context
 
 ### Investigation Report
 
 **Produced by**: Investigator
-**Consumed by**: Implementor, Orchestrator, Reviewers
+**Consumed by**: Implementor, Orchestrator, Code Reviewer
 **Sections**: As-Is State, To-Be State, Change Table (component, change type, file, reason), Impact Matrix (severity), Scenario Mapping
 **Validation**: File references concrete, impact severity rated, implementation path clear
+
+### Business Domain Registry / Domain Map
+
+**Produced by**: Business Analyst, Investigator, or Orchestrator planning lane
+**Consumed by**: Implementor, Code Reviewer, Test Specialist, Orchestrator
+**Sections**: Domain Index, Glossary, Lifecycle States, Key Business Rules, Cross-Domain Dependencies, Source References
+**Validation**: Rules trace back to code or project docs, domain boundaries explicit, cross-domain dependencies called out, no duplication of the full registry in `copilot-instructions.md`
 
 ### Validation Plan
 
 **Produced by**: Implementor or Test Specialist
-**Consumed by**: Test Specialist, Reviewers, Orchestrator
+**Consumed by**: Test Specialist, Code Reviewer, Orchestrator
 **Sections**: Validation Scope, Test Strategy (unit/integration/UI/manual), Commands and Environments, Risks and Blind Spots
 **Validation**: Commands concrete and executable, coverage expectations explicit
 
 ### Review Packet
 
 **Produced by**: Implementor or Orchestrator
-**Consumed by**: Technical Reviewer, Functional Reviewer
+**Consumed by**: Code Reviewer
 **Sections**: Change Summary, Key Files and Dependencies, Validation Evidence, Review Focus Areas
 **Validation**: Enough context for deep review (not just diffs), validation evidence present
 
