@@ -33,7 +33,6 @@ iOS, iPadOS, macOS, visionOS, watchOS, and tvOS.
 - Prefer portable designs unless the user asks for repo-locked behavior
 - Multi-agent architecture when quality depends on distinct phases
 - Hard audit gate for non-trivial bundles
-- Refresh official Copilot documentation and Swift domain knowledge before any generation flow
 - Generated agents must not declare `tools` or `mcp-servers` in frontmatter by default; omitting these fields keeps all tools (including user-configured MCP servers) accessible
 - Generated agents must include explicit MCP tool preference guidance for any agent that may interact with external services — "do not restrict MCP in frontmatter" must not be misread as "do not use MCP at runtime"
 - Align generated agents to the project's actual technology profile — never assume latest defaults when the codebase shows otherwise
@@ -44,7 +43,7 @@ iOS, iPadOS, macOS, visionOS, watchOS, and tvOS.
 
 The entire bundle must be generated within a single continuous session. Never abandon the workflow or leave generation incomplete.
 
-- **Start to finish in one session**: Once generation begins, continue through refresh → analyze → generate → audit → revise → deliver without stopping.
+- **Start to finish in one session**: Once generation begins, continue through analyze → generate → audit → revise → deliver without stopping.
 - **Interactive clarification when blocked**: When user input is genuinely needed (high-risk ambiguity that would materially change the bundle), present a structured question with 2-4 options and a recommended default. Wait for the user's response, then resume processing immediately.
 - **Low-risk ambiguity**: Continue with an explicit provisional assumption. State the assumption so the user can override.
 - **Never abandon**: Do not end a response mid-workflow claiming "we can continue later" or "let me know when you're ready." If blocked on user input, ask the question and explicitly commit to continuing after receiving the answer.
@@ -57,36 +56,24 @@ This rule applies to the kit itself (Agent Builder generating bundles) and to ge
 
 ### Standard User-Facing Phases
 
-1. Refresh Copilot documentation and Swift domain knowledge
-2. Analyze the codebase
-3. Assess the project and choose bundle architecture
-4. Ask targeted follow-up only if needed (auto-skip when possible)
-5. Generate or update the bundle
-6. Audit and iterate until PASS
-7. Deliver the final result
+1. Analyze the codebase
+2. Assess the project and choose bundle architecture
+3. Ask targeted follow-up only if needed (auto-skip when possible)
+4. Generate or update the bundle
+5. Audit and iterate until PASS
+6. Deliver the final result
 
 Internal setup work (reading skill files, loading templates, scanning existing files) stays inside these phases, not as extra top-level steps.
 
-### 0. Refresh Official Copilot Guidance and Swift Domain Knowledge
+### Kit Reference Files
 
-Before analysis or generation, run both steps (they are independent and can run in parallel):
+The kit maintains one persistent reference file that the generator reads directly during generation:
 
-**Step A — Official Copilot Documentation (product behavior)**
-- Use `Apple Copilot Docs Refresher` to fetch the Mandatory Source Set from `.github/templates/agent-builder/copilot-doc-source-registry.md`
-- Verify every mandatory URL still resolves; repair broken links before continuing
-- Add Optional sources when the workflow touches skills, memory, MCP, or environment setup
-- Produce an in-session refresh brief using `.github/templates/agent-builder/copilot-doc-refresh-brief-template.md`
-- Do not persist the brief as a file in the target project
-- When maintaining the kit, update `kit-doc-refresh.md`
+- `.github/templates/agent-builder/kit-doc-refresh.md` — Copilot product behavior: frontmatter rules, primitives, tool behavior, hook behavior, instruction precedence. Updated by `Apple Copilot Docs Refresher` during kit maintenance.
 
-**Step B — Swift Community Skills (Apple platform domain knowledge)**
-- Use `Apple Swift Skills Reader` to fetch the current skill list from `https://github.com/twostraws/Swift-Agent-Skills`
-- Read each skill's SKILL.md, README.md, and reference docs; log warnings for unavailable skills and continue
-- Aggregate into a domain knowledge brief using `.github/templates/agent-builder/swift-skills-brief-template.md` as the output format, organized by topic (SwiftUI, SwiftData, Swift Concurrency, Swift Testing, Accessibility, etc.)
-- Do not persist the brief as a file in the target project
-- When maintaining the kit, update `kit-swift-skills-brief.md`
+Apple platform domain knowledge is not maintained as a separate snapshot. It must come from the target project's codebase analysis: source files, project config, tests, resources, entitlements, and migration signals. When project signal is thin, use cautious fallback assumptions and mark them explicitly.
 
-The Copilot docs brief (Step A) governs primitive structure, frontmatter rules, and product behavior. The Swift skills brief (Step B) governs Apple platform domain knowledge for domain-specific skill content generation. Both briefs are inputs to the generator.
+The docs snapshot is an authoritative generator input. It does not need to be fetched each run — the kit owner updates it periodically using the refresher agent during kit maintenance sessions.
 
 ### 1. Clarify the Outcome
 
@@ -130,7 +117,8 @@ Use scaffold templates from `.github/templates/agent-builder/`:
 Pick roles from `apple-role-catalog.md`. Replace every `<...>` placeholder with project-grounded content.
 
 **For `/generate-workflow-agents`, default to a full workflow kit:**
-- Project-tailored `copilot-instructions.md` (standard filename, not prefixed; do not copy the kit's own)
+- `copilot-instructions.md` — workspace-level instructions automatically loaded by Copilot for all interactions. If the target project already has one, update it to integrate with the generated agent ecosystem while preserving existing relevant content. If the target project does not have one, create it. Content: concise project overview, technology stack, core conventions, agent ecosystem guide (available agents, primary prompt entry points, how to invoke), and cross-references to detailed instructions.
+- Project context instruction (`<prefix>-project-context.instructions.md` with `applyTo: "**"`) for detailed project facts (architecture, domain glossary, extended conventions, bundle evolution guidance). Supplements `copilot-instructions.md` with depth that would be too verbose for the workspace-level file.
 - Conductor + specialist agents with project-derived file prefix
 - Multiple focused skills: delivery workflow (mandatory) + domain-specific (testing, investigation, review)
 - Multiple narrow instructions: implementation conventions + test conventions at minimum
@@ -142,14 +130,15 @@ Pick roles from `apple-role-catalog.md`. Replace every `<...>` placeholder with 
 - Intermediate working files deleted before finalizing
 - Dirty worktree: preserve unrelated edits, stop only for direct path conflicts
 
-**Naming rule**: Use a project-derived file prefix for generated files. Never prefix `copilot-instructions.md`.
+**Naming rule**: Use a project-derived file prefix for generated files.
 
 ### 5. Validate Before Finalizing
 
 Run `.github/templates/agent-builder/agent-audit-rubric.md`. Key checks:
 - Cross-reference integrity (no orphaned templates or skills, bidirectional linking)
 - Delivery workflow skill present
-- `copilot-instructions.md` uses standard filename, no intermediate files left
+- `copilot-instructions.md` present (created or updated) with workspace-level content
+- Project context instruction file present, no intermediate files left
 - Frontmatter valid with discoverable descriptions
 - Roles clear, goals explicit, output contracts defined
 - Apple platform scope explicit
@@ -167,7 +156,8 @@ Send to auditor. If `REVISE`, patch every finding (major and minor) and re-audit
 - 1 agent + 1 skill + 1 prompt + optional instruction + 1 template
 
 ### Full Kit: Apple delivery workflows (default for `/generate-workflow-agents`)
-- `copilot-instructions.md` for broad project context
+- `copilot-instructions.md` — workspace-level instructions (created or updated)
+- Project context instruction (`<prefix>-project-context.instructions.md`, `applyTo: "**"`) for detailed project facts
 - Conductor + 3+ specialist agents
 - 2+ skills (delivery + domain-specific)
 - 2+ instructions (implementation + testing)
@@ -195,7 +185,8 @@ Full specification and minimums table in `apple-quality-auditor.agent.md`.
 - `agents` field MUST use inline JSON-style array syntax with exact agent display names: `agents: ["Name A", "Name B"]` — NEVER use block list syntax (`- item`) and NEVER use filenames
 - `description` field MUST be a double-quoted string with concrete trigger phrases
 - `name` field MUST be an unquoted string matching the intended display name
-- Only emit frontmatter keys documented in current official Copilot documentation
+- Prompt files MUST use `agent` field (not `mode`) for routing to a specific agent: `agent: "Agent Display Name"`
+- Only emit frontmatter keys documented in current official Copilot documentation. For agents: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`. For prompts: `description`, `agent`.
 - Do not emit `tools` or `mcp-servers` unless explicitly requested
 - All generated files in the same bundle MUST use identical YAML formatting conventions
 
@@ -206,7 +197,7 @@ Full specification and minimums table in `apple-quality-auditor.agent.md`.
 - Create domain-specific skills (testing, investigation, review) when they serve multiple agents
 - Encode specific workflow steps, decision trees, and validation checklists — not generic advice
 
-**Domain knowledge placement decision** — when the Swift Skills Reader brief provides domain knowledge for a technology area (SwiftUI, SwiftData, Concurrency, etc.), place it as follows:
+**Domain knowledge placement decision** — when the analyzer finds Apple domain knowledge for a technology area (SwiftUI, UIKit, persistence, concurrency, testing, accessibility, security, capabilities, etc.), place it as follows:
 
 | Signal | Where to put the knowledge |
 |--------|---------------------------|
@@ -214,18 +205,19 @@ Full specification and minimums table in `apple-quality-auditor.agent.md`.
 | Domain is used in the project but only one agent needs it | Embed directly in that agent's instructions |
 | Domain knowledge is a small set of conventions (< 10 rules) | Embed in the relevant instruction file (`applyTo` the matching path pattern) |
 | Domain is lightly used or the project barely touches it | Skip — do not create a skill or bloat instructions for thin signal |
+| Domain signal is thin or unknown | Prefer omission or an explicit uncertainty note over prescriptive guidance |
 
-Do not mirror the community skills repository structure (one skill per domain) onto the generated bundle. Create a domain skill only when it earns its place through multi-agent reuse and project relevance.
+Do not generate one skill per detected Apple technology area. Create a domain skill only when it earns its place through multi-agent reuse and strong project signal from the analyzer.
 
 ### Business Knowledge Persistence
-- Always capture the minimum shared business context in `copilot-instructions.md`: domain glossary, key business rules, lifecycle states, and invariants.
+- Always capture the minimum shared business context in the project context instruction: domain glossary, key business rules, lifecycle states, and invariants.
 - For projects with richer business complexity, choose the lightest primitive that preserves shared understanding:
-	- `copilot-instructions.md` only: small apps or products whose business rules fit in a concise summary
+	- project context instruction only: small apps or products whose business rules fit in a concise summary
 	- domain-scoped instructions: business rules that map cleanly to specific paths or modules
 	- reusable workflow asset or domain map: multiple domains, lifecycle-heavy workflows, or cross-domain dependencies that several agents must reference
 	- business-domain skill: only when multiple agents reuse the same repeatable business-analysis workflow or interpretation process
 - If a bundle includes a business domain registry, domain map, domain-scoped instructions, or a business-domain skill, Business Analyst, Investigator, Implementor, Code Reviewer, and Dev Orchestrator must reference it explicitly in their collaboration inputs or decision rules.
-- Do not generate a dedicated business-domain artifact when the project's business context fits cleanly in `copilot-instructions.md` and the normal planning/investigation assets.
+- Do not generate a dedicated business-domain artifact when the project's business context fits cleanly in the project context instruction and the normal planning/investigation assets.
 - Do not add a dedicated kit subagent for business-domain modeling by default. The analyzer extracts business context, and the generator decides how to persist it. Add an extra specialization only when business-domain synthesis becomes a distinct workflow with materially different failure modes.
 
 ### Instruction
@@ -237,6 +229,7 @@ Do not mirror the community skills repository structure (one skill per domain) o
 - Short, discoverable, route to the right agent
 - At least 2: primary delivery + secondary entry point
 - Make the default workflow lane obvious
+- Frontmatter MUST use `agent` field (not `mode`) for routing to a specific agent
 
 ### Hook
 - Only when deterministic enforcement is truly needed and safe
@@ -267,27 +260,32 @@ Rules for efficient context usage in generated agents and artifacts.
 - Static rules belong in instructions and skills (loaded once), not duplicated across every agent's instructions
 
 ### Three-Layer Context Model
-Generated bundles should distribute context efficiently across three layers:
-1. **`copilot-instructions.md`** — Broad project facts every interaction needs: architecture, conventions, domain glossary, technology stack. Loaded automatically. Keep concise.
-2. **Instructions** — Narrow, file-pattern-scoped rules. Loaded only when matching files are active. Keep single-purpose.
+Generated bundles should distribute context efficiently across three layers (plus a workspace-level foundation):
+
+**Foundation**: `copilot-instructions.md` — Workspace-level instructions automatically loaded by Copilot for all interactions. Concise project overview, technology stack, core conventions, agent ecosystem guide (available agents, prompt entry points, how to invoke). Target 40-80 lines. This is the entry point for anyone using Copilot in the project.
+
+1. **Project context instruction** (`<prefix>-project-context.instructions.md`, `applyTo: "**"`) — Detailed project facts: architecture, extended conventions, domain glossary, bundle evolution guidance. Supplements `copilot-instructions.md` with depth. Keep concise but thorough.
+2. **Path-scoped instructions** — Narrow, file-pattern-scoped rules. Loaded only when matching files are active. Keep single-purpose.
 3. **Agent instructions** — Role-specific workflows, decision rules, and output contracts. Loaded only when the agent is invoked. Do not repeat what instructions or skills already cover.
 
-### Context Budget Guidance for Generated `copilot-instructions.md`
+Do not duplicate content between `copilot-instructions.md` and the project context instruction — the workspace-level file is the brief overview and agent guide, the project context instruction is the deep reference.
+
+### Context Budget Guidance for Generated Project Context Instruction
 - Target length: 80-150 lines for typical projects. Exceed only when genuine complexity demands it.
 - Include: project overview, architecture summary, technology stack, key conventions, domain glossary, quality expectations.
-- Exclude: role-specific workflows (belongs in agents), file-pattern rules (belongs in instructions), repeatable processes (belongs in skills).
+- Exclude: role-specific workflows (belongs in agents), file-pattern rules (belongs in path-scoped instructions), repeatable processes (belongs in skills).
 - Every line must earn its place — if a fact only matters for one role, put it in that agent's instructions instead.
 
 ## Bundle Evolution Guidance
 
-Generated `copilot-instructions.md` should include a brief section guiding post-generation maintenance:
+The generated project context instruction should include a brief section guiding post-generation maintenance:
 
 - **When to update agents**: After major architecture changes, new module additions, framework migrations, or when agents produce consistently wrong outputs.
 - **When to promote patterns**: If you find yourself correcting the same agent behavior repeatedly, extract the correction into an instruction file with a narrow `applyTo` scope.
 - **When to add instructions**: When a new convention emerges that applies to specific file patterns (e.g., new test naming convention, new module boundary rule).
 - **Drift signals**: Agents referencing removed files, using outdated API patterns, or suggesting conventions the team abandoned are signs of drift — update the affected agents.
 
-The generator must include this guidance section in every generated `copilot-instructions.md`.
+The generator must include this guidance section in every generated project context instruction.
 
 ## Anti-Patterns
 

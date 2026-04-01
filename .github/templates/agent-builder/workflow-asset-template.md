@@ -65,7 +65,7 @@ Use these as starting points when generating specific workflow assets. Adapt sec
 **Produced by**: Business Analyst, Investigator, or Orchestrator planning lane
 **Consumed by**: Implementor, Code Reviewer, Test Specialist, Orchestrator
 **Sections**: Domain Index, Glossary, Lifecycle States, Key Business Rules, Cross-Domain Dependencies, Source References
-**Validation**: Rules trace back to code or project docs, domain boundaries explicit, cross-domain dependencies called out, no duplication of the full registry in `copilot-instructions.md`
+**Validation**: Rules trace back to code or project docs, domain boundaries explicit, cross-domain dependencies called out, no duplication of the full registry in the project context instruction
 
 ### Validation Plan
 

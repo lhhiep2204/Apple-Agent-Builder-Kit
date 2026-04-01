@@ -1,13 +1,13 @@
 # Copilot Documentation Refresh Brief Template
 
-Use this template when refreshing official GitHub Copilot documentation before generation or audit.
+Use this template during **kit maintenance** when the kit owner runs `Apple Copilot Docs Refresher` to update `kit-doc-refresh.md`. Not used during target project generation.
 
 ## Metadata
 
 - Fetch date: <YYYY-MM-DD>
-- Triggering flow: <generate-workflow-agents | add-agent | direct generation | audit>
-- Requested workflow: <what is being generated or audited>
-- Note: This brief is an in-session working document. Do not persist it as a file in the target project.
+- Triggering flow: kit-maintenance
+- Maintenance reason: <e.g., new Copilot feature announced, periodic refresh, suspected drift>
+- Note: Do not persist this brief as a file in the target project. When updating the kit itself, write results directly into `kit-doc-refresh.md`.
 
 ## Sources Consulted
 
@@ -38,7 +38,7 @@ Use this template when refreshing official GitHub Copilot documentation before g
 
 - <what the generator should change>
 - <what the auditor must verify>
-- <what should move into copilot-instructions.md, instructions, skills, prompts, or agents>
+- <what should move into project context instruction, instructions, skills, prompts, or agents>
 
 ## Conflicts With Repo-Local Assumptions
 

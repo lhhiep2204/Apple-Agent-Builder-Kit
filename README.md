@@ -2,7 +2,7 @@
 
 Apple Agent Builder Kit is an Apple-first Copilot customization framework that helps teams create high-quality custom agents, skills, instructions, prompts, and templates for real software delivery work.
 
-Instead of producing generic customization files, this kit refreshes official Copilot documentation, analyzes project context, generates focused artifacts, audits the result, and iterates until the bundle is as strong and current as the available evidence supports.
+Instead of producing generic customization files, this kit analyzes project context, generates focused artifacts, audits the result, and iterates until the bundle is as strong and current as the available evidence supports. Official Copilot documentation is maintained as a persistent kit reference file, while Apple platform domain knowledge is derived from the target project's own code, config, tests, resources, and capabilities.
 
 ## Why This Exists
 
@@ -20,13 +20,13 @@ Two user-facing entry points, covering three workflows:
 - **Generate or improve full workflow** (`/generate-workflow-agents`): For any project — analyze the codebase, classify project state (greenfield, established, or mixed), then generate a full agent bundle from scratch, or audit, improve, and extend an existing ecosystem when agents already exist.
 - **Add or verify a specific agent** (`/add-agent`): Create a new agent (scan existing to detect overlap, audit for ecosystem coherence), or verify and improve an existing agent (audit against kit standards, fix findings).
 
-Both flows share the same loop: refresh docs → validate official source links → analyze → assess → ask only if needed → generate → audit → revise until `PASS`. The entire workflow completes in a single session — when clarification is needed, the kit asks with structured options, waits for your response, and continues. It never abandons generation mid-session.
+Both flows share the same loop: analyze → assess → ask only if needed → generate → audit → revise until `PASS`. The entire workflow completes in a single session — when clarification is needed, the kit asks with structured options, waits for your response, and continues. It never abandons generation mid-session.
 
-By default, generated artifacts use a project-derived file prefix so they are easy to distinguish from the kit's internal files.
+By default, generated artifacts use a project-derived file prefix so they are easy to distinguish from the kit's internal files. The intentional exception is `.github/copilot-instructions.md`, which keeps the standard Copilot filename and is created or updated in the target project.
 
-For full workflow generation, the default expectation is a real workflow kit: a project-tailored `copilot-instructions.md`, agents, multiple focused skills, multiple narrow instructions, prompts, reusable templates, and an explicit hook decision. The generated kit should behave like a cooperating specialist team with explicit collaboration lanes, clear hand-off artifacts, and automatic iteration loops.
+For full workflow generation, the default expectation is a real workflow kit: an updated or newly created `.github/copilot-instructions.md` (workspace-level overview and agent guide), a project-tailored project context instruction (`<prefix>-project-context.instructions.md`), agents, multiple focused skills, multiple narrow instructions, prompts, reusable templates, and an explicit hook decision. The generated kit should behave like a cooperating specialist team with explicit collaboration lanes, clear hand-off artifacts, and automatic iteration loops.
 
-For business-heavy projects, the kit can also generate shared business knowledge artifacts when they earn their place: domain-scoped instructions, a business domain registry / domain map, or a reusable business-domain skill. Small or simple projects should keep business context in `copilot-instructions.md` instead of forcing extra files.
+For business-heavy projects, the kit can also generate shared business knowledge artifacts when they earn their place: domain-scoped instructions, a business domain registry / domain map, or a reusable business-domain skill. Small or simple projects should keep business context in the project context instruction instead of forcing extra files.
 
 ## Generated Workflow Coverage
 
@@ -56,37 +56,36 @@ The kit intentionally keeps one internal source-of-truth skill plus specialized 
 
 ```
 Agent Builder (Conductor)
-├── Apple Copilot Docs Refresher — refreshes official Copilot docs and builds the refresh brief
-├── Apple Swift Skills Reader   — fetches community Apple platform skills and builds the domain knowledge brief
 ├── Apple Codebase Analyzer     — reads project, inventories existing agents
 ├── Apple Agent Generator       — generates artifacts using scaffold templates
-└── Apple Quality Auditor       — hard-gates the bundle before finalization
+├── Apple Quality Auditor       — hard-gates the bundle before finalization
+│
+│  Kit maintenance only (not invoked during generation):
+└── Apple Copilot Docs Refresher — refreshes official Copilot docs into kit-doc-refresh.md
 ```
 
 Templates in `.github/templates/agent-builder/` are wired directly into each subagent:
-- Analyzer uses `apple-codebase-analysis-template.md` for structured output
-- Generator uses scaffold templates (`agent/skill/instruction/prompt-template.md`, `workflow-asset-template.md`), `apple-role-catalog.md`, `primitive-decision-matrix.md`, `hook-checklist.md`
-- Documentation refresh uses `copilot-doc-source-registry.md` (authoritative source registry) and `kit-doc-refresh.md` (persistent refresh snapshot)
-- Swift Skills Reader uses `swift-skills-brief-template.md` (output format) and `kit-swift-skills-brief.md` (persistent snapshot)
+- Analyzer uses `apple-codebase-analysis-template.md` for structured output, including the Technology Alignment Profile and Apple Domain Coverage Matrix built from target-project evidence
+- Generator uses scaffold templates (`agent/skill/instruction/prompt-template.md`, `workflow-asset-template.md`), `apple-role-catalog.md`, `primitive-decision-matrix.md`, `hook-checklist.md`, plus reads `kit-doc-refresh.md` (Copilot product behavior) and the analyzer's Apple domain evidence as its inputs
+- Documentation refresh (kit maintenance only) uses `kit-doc-source-registry.md` (authoritative source registry) and updates `kit-doc-refresh.md`
 - Auditor uses `agent-audit-rubric.md` (7 dimensions: discovery, architecture fit, execution quality, Apple specificity, scope discipline, ecosystem coherence, context efficiency)
-- Business knowledge persistence is decided by the analyzer + generator together: keep simple projects in `copilot-instructions.md`, and add domain-scoped instructions, a business domain registry / domain map, or a business-domain skill only when the target project's domain complexity warrants it
+- Business knowledge persistence is decided by the analyzer + generator together: keep simple projects in the project context instruction, and add domain-scoped instructions, a business domain registry / domain map, or a business-domain skill only when the target project's domain complexity warrants it
 
 ## Repo Structure
 
 ```text
 .github/
-  copilot-instructions.md              ← repository-wide guidance
+
   agents/
     agent-builder.agent.md              ← conductor
-    apple-copilot-docs-refresher.agent.md ← subagent: refreshes official Copilot docs
-    apple-swift-skills-reader.agent.md  ← subagent: fetches community Apple platform skills
+    apple-copilot-docs-refresher.agent.md ← kit maintenance: refreshes official Copilot docs
     apple-codebase-analyzer.agent.md    ← subagent: reads project + existing agents
     apple-agent-generator.agent.md      ← subagent: generates bundle from templates
     apple-quality-auditor.agent.md      ← subagent: hard-gates before finalize
   skills/
     agent-builder/SKILL.md              ← SSoT for workflow, bundle shapes, artifact requirements
   instructions/
-    agent-builder.instructions.md
+    agent-builder.instructions.md       ← kit-wide guidance + customization file standards
   prompts/
     generate-workflow-agents.prompt.md  ← generates, verifies, or improves full dev workflow kit
     add-agent.prompt.md                 ← adds a new agent or verifies an existing agent
@@ -98,11 +97,9 @@ Templates in `.github/templates/agent-builder/` are wired directly into each sub
       prompt-template.md                ← scaffold: prompt
       workflow-asset-template.md        ← scaffold: templates/checklists (includes common patterns)
       apple-codebase-analysis-template.md ← analyzer output format
-      copilot-doc-refresh-brief-template.md ← refresh brief format
-      copilot-doc-source-registry.md    ← URL registry for official Copilot docs
-      kit-doc-refresh.md                ← last documentation refresh (kit-internal)
-      swift-skills-brief-template.md    ← Swift skills brief output format
-      kit-swift-skills-brief.md         ← last Swift skills fetch (kit-internal)
+      kit-doc-refresh-template.md        ← refresh brief output format (used by refresher)
+      kit-doc-source-registry.md        ← URL registry for official Copilot docs (used by refresher)
+      kit-doc-refresh.md                ← persistent Copilot product behavior reference (read by generator)
       agent-audit-rubric.md             ← audit checklist (7 dimensions)
       primitive-decision-matrix.md      ← primitive selection decision aid
       apple-role-catalog.md             ← role naming reference
@@ -116,7 +113,7 @@ Templates in `.github/templates/agent-builder/` are wired directly into each sub
 3. Use the prompt entry points:
   - `/generate-workflow-agents` — build, verify, or refresh the full dev workflow kit
   - `/add-agent` — add one new agent or verify an existing agent without breaking ecosystem coherence
-4. The kit analyzes your codebase, refreshes official Copilot docs, generates agents grounded in your conventions, and audits everything automatically.
+4. The kit analyzes your codebase, generates agents grounded in your conventions, and audits everything automatically.
 5. Generated files use a project-derived prefix so they stay visually separate from the kit's own assets.
 
 ## Real Examples
@@ -134,7 +131,8 @@ The kit reads the project, detects project state, then generates:
 - `myapp-implementor.agent.md` — production code across all architecture layers
 - `myapp-test-specialist.agent.md` — unit and UI tests with full coverage
 - `myapp-code-reviewer.agent.md` — technical + functional review, PR review, severity-driven verdicts
-- Updated `copilot-instructions.md` — broad project context shared by all agents
+- Created or updated `.github/copilot-instructions.md` — concise workspace-level project overview, conventions, and agent ecosystem guide
+- Created or updated `myapp-project-context.instructions.md` — deeper project context shared by all agents
 - `myapp-delivery-workflow/SKILL.md` — reusable delivery orchestration skill
 - `myapp-testing-methodology/SKILL.md` — testing patterns shared across agents
 - `myapp-implementation.instructions.md` — narrow implementation conventions
@@ -188,20 +186,14 @@ The kit reads the target agent and all associated files, compares against the au
 - Legacy-aware fallback: UIKit, AppKit, Core Data, XCTest UI when the codebase requires it
 - **Technology alignment**: Use project's actual stack (not kit defaults) when generating agents
 - **Generation Principles**: Every generated agent embeds 8 non-negotiable behavioral rules (understand before changing, confirm business logic, no duplicate validation, respect boundaries, clarify before acting, verify before claiming, prefer simplicity, explain decisions)
-- **Context optimization**: Three-layer context model distributes facts efficiently across `copilot-instructions.md`, instructions, and agent instructions — no duplication, concise hand-offs
-- **Business knowledge placement**: Store business context in the lightest shared artifact that fits the project - `copilot-instructions.md` for simple products, domain-scoped instructions or a business domain registry / domain map for richer products, and a business-domain skill only when multiple agents reuse the same business workflow
-- **Bundle evolution**: Generated `copilot-instructions.md` includes maintenance guidance so teams know when to update agents, promote patterns, and detect drift
+- **Context optimization**: Workspace-level `copilot-instructions.md` provides the concise foundation, then the context model distributes deeper facts across project context instruction, path-scoped instructions, and agent instructions — no duplication, concise hand-offs
+- **Business knowledge placement**: Store business context in the lightest shared artifact that fits the project - project context instruction for simple products, domain-scoped instructions or a business domain registry / domain map for richer products, and a business-domain skill only when multiple agents reuse the same business workflow
+- **Bundle evolution**: Generated project context instruction includes maintenance guidance so teams know when to update agents, promote patterns, and detect drift
 - **Drift detection**: For established projects, the analyzer checks for stale file references, outdated conventions, and abandoned patterns before generation
 - **Simulator destination**: Derive from project's deployment target + Xcode version, never hardcode device model
 - **Lint validation**: When linter is configured, verify with `--strict` flag to catch warnings, not just errors
 - **Tool surface default**: Generated agents should not declare frontmatter `tools` or `mcp-servers` unless explicitly requested
 - Comprehensive artifact set by default — include every artifact that materially improves execution quality
-- Official-doc refresh before generation — fetch current sources, repair broken links
+- Kit reference files maintained separately — Copilot docs snapshot is a persistent kit asset, while Apple domain knowledge comes from codebase-first analysis
 - Linting tools best handled via instructions and agent validation steps; hooks only when justified
 - Project-derived file prefixes for generated artifacts
-
-## Acknowledgements
-
-### Swift Agent Skills
-
-Thanks to [Paul Hudson](https://github.com/twostraws) and the contributors behind [Swift Agent Skills](https://github.com/twostraws/Swift-Agent-Skills) — a community-maintained compilation of agent skills for Apple platform development. The kit's `Apple Swift Skills Reader` subagent fetches this compilation at runtime to enrich generated agents with concrete, community-tested best practices for SwiftUI, Swift Concurrency, Swift Testing, SwiftData, Accessibility, and other Apple platform domains.

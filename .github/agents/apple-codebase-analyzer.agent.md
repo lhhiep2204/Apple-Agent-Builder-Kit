@@ -65,11 +65,31 @@ Classify the project state:
 - Navigation patterns, state management, dependency injection, repository patterns
 - Design system structure, reusable components, feature slicing, module boundaries
 
-### 4. Apple Technical Conventions And Technology Alignment Profile
+### 4. Apple Technical Conventions, Technology Alignment Profile, And Domain Evidence
 - SwiftUI versus UIKit or AppKit split
 - Observation, actor isolation, async or await usage, Sendable discipline
 - SwiftData, Core Data, URLSession, MapKit, CoreLocation, testing frameworks
-- Accessibility, localization, performance, memory, and lifecycle concerns
+- Accessibility, localization, performance, memory, lifecycle, privacy, and capability concerns
+
+**Apple Domain Evidence Coverage** — inspect code, config, tests, resources, and project metadata so the generator can encode Apple-specific guidance from the target project itself:
+
+- UI composition and navigation: app and scene entry points, router or coordinator patterns, tabs, split views, previews
+- State and observation: `@Observable`, `ObservableObject`, reducer or store patterns, `@Environment`, binding ownership
+- Persistence and data flow: SwiftData, Core Data, custom repositories, schema or migration patterns, caching
+- Concurrency and actor isolation: task creation, `MainActor` boundaries, `Sendable` usage, cancellation, async service boundaries
+- Platform capabilities: entitlements, privacy strings, notifications, background tasks, widgets, App Intents, location, camera, HealthKit, StoreKit, extensions
+- Testing surface: Swift Testing, XCTest, UI tests, snapshot tests, test plans, launch arguments, mocks or fakes
+- Resources and UX: asset catalogs, localization resources, accessibility identifiers or labels, Dynamic Type, design-system tokens
+- Security and privacy: Keychain, auth/session handling, ATS, secure storage, data protection, feature flags
+- Performance and lifecycle: startup flow, scene or app lifecycle, rendering hotspots, memory or caching strategy, offline behavior
+
+For each domain, record:
+- signal strength (`strong`, `moderate`, `thin`, or `unknown`)
+- evidence files, configs, or commands that support the finding
+- generation implications (what generated agents must know)
+- preferred placement (project context instruction, path-scoped instruction, agent instruction, reusable skill, or skip)
+
+If evidence is thin, conflicting, or absent, mark the domain as `thin` or `unknown` instead of assuming the latest Apple best practices.
 
 **Technology Alignment Profile** — for each dimension, capture the project's **actual** state and note deviations from the kit's fallback defaults:
 
@@ -105,7 +125,7 @@ This profile is the authoritative source for the generator. Generated agents mus
 - linting tools in use and whether they are better handled via instructions + agent validation steps or via hooks (validate against `hook-checklist.md`)
 
 ### 7. Skill Candidates
-- identify cross-agent reusable workflows that benefit from domain-specific skills (testing methodology, investigation methodology, review methodology, other)
+- identify cross-agent reusable workflows and Apple domain areas that benefit from dedicated skills only when project signal is strong and multiple agents will reuse the knowledge
 - note which agents would use each candidate skill
 
 ### 8. Prompt And Template Candidates
@@ -125,10 +145,10 @@ This profile is the authoritative source for the generator. Generated agents mus
 - cross-domain dependencies, hand-offs, or lifecycle transitions between domains
 - existing business knowledge artifacts in `.github/`, `docs/`, ADRs, specs, or READMEs
 - whether business rules are concentrated in a few modules or spread across many features
-- whether the project's business complexity warrants extra persistence beyond `copilot-instructions.md`
+- whether the project's business complexity warrants extra persistence beyond the project context instruction
 
 For business knowledge persistence, recommend the lightest artifact that fits the project:
-- `copilot-instructions.md` only for small/simple products
+- project context instruction only for small/simple products
 - domain-scoped instructions when rules map cleanly to files or modules
 - business domain registry / domain map asset when multiple domains, lifecycle-heavy flows, or cross-domain dependencies need shared reference
 - business-domain skill only when multiple agents will reuse the same repeatable business-analysis workflow
@@ -140,21 +160,22 @@ When analyzing an established project (agents already exist), check for stalenes
 - Agents using API patterns, framework conventions, or Swift version assumptions that the project has moved away from
 - Instructions with `applyTo` patterns that match no current files
 - Skills referencing workflows or tools the project no longer uses
-- `copilot-instructions.md` describing architecture, conventions, or domain terms that have changed
+- `<prefix>-project-context.instructions.md` describing architecture, conventions, or domain terms that have changed
 - Timestamps or version references that are clearly outdated
 
 For each drift signal found, report: which file, what is stale, what the current state is, and recommended fix. Include a **drift summary** in the output with a count of stale references and severity assessment (cosmetic, misleading, or harmful).
 
-### 11. Copilot Instructions Content
-Extract the facts that belong in the project's `copilot-instructions.md` — broad context that every agent and Copilot interaction should share:
+### 11. Project Context Instruction Content
+Extract the facts that belong in the project's `<prefix>-project-context.instructions.md` — broad context that every agent and Copilot interaction should share:
 - project overview and purpose
 - architecture summary (layer model, navigation, state management, DI)
 - technology stack and version defaults
 - key conventions that apply project-wide (naming, file organization, error handling)
 - domain glossary and business rule summary
 - general coding standards and quality expectations
-- if the project already has a `copilot-instructions.md`, evaluate its quality and identify gaps to fill
-- if richer business artifacts are recommended, treat `copilot-instructions.md` as the concise index and summary, not the full dumping ground for every rule
+- if the project already has a project context instruction or `copilot-instructions.md`, evaluate its quality and identify gaps to fill
+- recommend whether `copilot-instructions.md` needs to be created from scratch or updated, and what content should be preserved vs added
+- if richer business artifacts are recommended, treat the project context instruction as the concise index and summary, not the full dumping ground for every rule
 
 ## Output Contract
 
@@ -164,19 +185,20 @@ The brief must include:
 - project state classification (greenfield, established, or mixed)
 - inventory of existing agents with quality assessment and role comparison matrix
 - **technology alignment profile** — the project's actual technology stack with deviations from kit fallback defaults clearly marked, used as authoritative input for generation
+- **Apple domain coverage matrix** — signal strength, evidence anchors, generation implications, and preferred artifact placement for UI/navigation, state/observation, persistence, concurrency, testing, capabilities, accessibility/localization, security/privacy, and performance/lifecycle
 - detected Apple platforms and project type
 - repo-grounded validation and automation surfaces
 - pre-generation assessment summary: what the kit thinks should be built, what gaps or conflicts it found, and what facts still need user confirmation before generation
 - workflow-family coverage matrix: planning, investigation, delivery, testing, review, ecosystem extension, and ecosystem verification/improvement, with notes on which lanes are primary, optional, or unnecessary for this project
 - recommended collaboration topology: which agents should hand work to which other agents, what order they should run in, and where iteration loops should happen automatically
 - hand-off contract candidates: the minimum inputs, outputs, and pass/fail criteria each specialist should exchange with upstream or downstream agents
-- candidate skill domains with cross-agent usage mapping
-- business knowledge persistence recommendation: where business context should live (`copilot-instructions.md`, domain-scoped instructions, business domain registry / domain map, business-domain skill) and why
+- candidate skill domains with cross-agent usage mapping, backed by Apple domain evidence from the target project
+- business knowledge persistence recommendation: where business context should live (project context instruction, domain-scoped instructions, business domain registry / domain map, business-domain skill) and why
 - candidate prompt entry points (primary + secondary)
 - candidate template/checklist hand-off moments
 - linting tool detection and recommended handling (instruction vs hook)
 - **drift summary** with count of stale references, severity assessment, and recommended fixes (for established and mixed projects)
-- recommended content for `copilot-instructions.md` creation or update
+- recommended content for project context instruction creation or update
 - candidate instruction scopes covering distinct convention domains (implementation, testing, UI, data layer, etc.)
 - candidate narrow instruction scopes
 - critical conventions to preserve
@@ -191,7 +213,10 @@ The brief must include:
 
 - assuming all Apple projects are SwiftUI-only
 - ignoring existing UIKit or AppKit constraints
+- inferring Apple domain guidance from kit defaults or generic community patterns without evidence in the target project
+- treating missing evidence as proof that a domain or capability does not exist when it may live in config, resources, or tests
 - focusing on files without extracting business rules and team workflow
+- recommending Apple domain skills for thin-signal domains or one-off use that should stay in instructions or a single agent
 - recommending a business domain registry or business-domain skill without evidence that the project's domain complexity warrants it
 - producing a long inventory with no decision-ready synthesis
 - skipping existing agent scan and generating duplicates

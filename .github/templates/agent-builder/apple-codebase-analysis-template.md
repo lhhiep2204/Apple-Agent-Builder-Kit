@@ -92,13 +92,13 @@
 - narrow `applyTo` recommendations:
 - distinct convention domains that warrant separate instructions:
 
-## Candidate Skill Domains
+## Candidate Skill Domains (Evidence-Backed Only)
 
 - delivery workflow skill:
 - testing methodology skill (serves which agents):
 - investigation methodology skill (serves which agents):
 - review methodology skill (serves which agents):
-- other domain skill candidates:
+- other Apple domain skill candidates with evidence + multi-agent reuse:
 
 ## Candidate Prompt Entry Points
 
@@ -150,6 +150,22 @@
 
 Generated agents must align to the "Project actual" column. Note deviations explicitly so the generator does not apply kit fallback defaults where the project uses different technology.
 
+## Apple Domain Coverage Matrix
+
+| Domain | Signal strength | Evidence files / config | What generated agents must know | Preferred placement |
+|--------|-----------------|-------------------------|---------------------------------|---------------------|
+| UI composition and navigation | <strong / moderate / thin / unknown> | <files, config, or commands> | <critical guidance> | <project context instruction / path-scoped instruction / agent instruction / skill / skip> |
+| State and observation | <signal> | <evidence> | <guidance> | <placement> |
+| Persistence and data flow | <signal> | <evidence> | <guidance> | <placement> |
+| Concurrency and actor isolation | <signal> | <evidence> | <guidance> | <placement> |
+| Testing surface | <signal> | <evidence> | <guidance> | <placement> |
+| Platform capabilities | <signal> | <evidence> | <guidance> | <placement> |
+| Accessibility and localization | <signal> | <evidence> | <guidance> | <placement> |
+| Security and privacy | <signal> | <evidence> | <guidance> | <placement> |
+| Performance and lifecycle | <signal> | <evidence> | <guidance> | <placement> |
+
+Unknown or thin signal is valid. Do not backfill missing evidence with generic Apple doctrine.
+
 ## Domain Context
 
 - glossary:
@@ -161,21 +177,33 @@ Generated agents must align to the "Project actual" column. Note deviations expl
 
 - business complexity signal: <simple | moderate | complex>
 - current business knowledge artifacts:
-- recommended storage: <copilot-instructions only | domain-scoped instructions | business domain registry / domain map | business-domain skill + supporting instructions>
+- recommended storage: <project context instruction only | domain-scoped instructions | business domain registry / domain map | business-domain skill + supporting instructions>
 - rationale:
 - agents that must consume it:
-- what should remain summarized in `copilot-instructions.md` versus live in dedicated artifacts:
+- what should remain summarized in project context instruction versus live in dedicated artifacts:
 
-## Recommended Copilot Instructions Content
+## Recommended Workspace-Level Instructions (`copilot-instructions.md`)
 
-Content to include in the project's `copilot-instructions.md`:
+For the target project's `.github/copilot-instructions.md`:
+- recommendation: <create from scratch | update existing>
+- existing file quality assessment (if present):
+- content to preserve from existing file (if any):
+- content to add for agent ecosystem integration:
+- concise project overview:
+- technology stack summary:
+- core conventions worth surfacing globally:
+- agent ecosystem guide (available agents, primary prompts, how to invoke them):
+- cross-references to deeper instruction files:
+
+## Recommended Project Context Instruction Content
+
+Content to include in the project's `<prefix>-project-context.instructions.md`:
 - project overview:
 - architecture summary:
 - technology stack and defaults:
 - key project-wide conventions:
 - domain glossary:
 - general coding standards:
-- existing `copilot-instructions.md` quality assessment:
 
 ## Coverage Gaps And Conflict Risks
 

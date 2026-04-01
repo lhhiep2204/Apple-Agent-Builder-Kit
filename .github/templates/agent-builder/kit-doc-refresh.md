@@ -3,7 +3,7 @@
 ## Metadata
 
 - Fetch date: 2026-03-21
-- Note: This is the kit's persistent snapshot of the last successful official documentation refresh. It is updated in place during kit maintenance. For target project generation, refresh briefs remain in-session only.
+- Note: This is the kit's persistent snapshot of the last successful official documentation refresh. It is updated in place when the kit owner runs `Apple Copilot Docs Refresher` during kit maintenance. The generator reads this file directly during generation — no per-run fetch is needed.
 - Triggering flow: audit
 - Requested workflow: validate and tighten the Agent Builder Kit rules for supporting artifact defaults, dirty-worktree handling, and execution guardrails in generated workflow bundles
 
@@ -53,7 +53,7 @@
 
 ## Implications For This Bundle
 
-- The kit should continue to require explicit documentation refresh before generation or major rule updates
+- The kit maintains this file as a persistent reference; the generator reads it directly during generation without per-run fetching. The kit owner should re-run `Apple Copilot Docs Refresher` periodically or before major rule updates.
 - Generated workflow kits should prefer repo-grounded instructions, prompts, validation guidance, and templates over generic prose because current docs reinforce scoped tasks and concrete validation
 - For portability across environments, generated agents should avoid frontmatter `tools` and `mcp-servers` by default and encode behavior constraints in instructions unless the user explicitly asks for constrained tool access
 - Hook generation must stay conditional and justified; a no-hook rationale is better than speculative hook output when deterministic commands are not available

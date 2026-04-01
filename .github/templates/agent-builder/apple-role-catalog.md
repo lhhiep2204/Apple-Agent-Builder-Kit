@@ -2,7 +2,7 @@
 
 Use this as a default menu, not a mandatory output list.
 
-> **Naming rule**: Generated dev workflow agents do NOT use the "Apple" prefix. That prefix is reserved for the Agent Builder Kit's own subagents (`Apple Copilot Docs Refresher`, `Apple Swift Skills Reader`, `Apple Codebase Analyzer`, `Apple Agent Generator`, `Apple Quality Auditor`).
+> **Naming rule**: Generated dev workflow agents do NOT use the "Apple" prefix. That prefix is reserved for the Agent Builder Kit's own subagents (`Apple Copilot Docs Refresher`, `Apple Codebase Analyzer`, `Apple Agent Generator`, `Apple Quality Auditor`).
 
 ## Core Delivery Roles
 

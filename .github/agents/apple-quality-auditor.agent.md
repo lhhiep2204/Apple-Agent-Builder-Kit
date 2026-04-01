@@ -13,7 +13,8 @@ Use `.github/templates/agent-builder/agent-audit-rubric.md` as a quick-reference
 
 | Component | Minimum | Requirement |
 |-----------|---------|-------------|
-| `copilot-instructions.md` | 1 | Standard filename, project-tailored broad context |
+| `copilot-instructions.md` | 1 | Workspace-level instructions (created or updated). Concise project overview, tech stack, conventions, agent ecosystem guide, cross-references. 40-80 lines. |
+| Project context instruction | 1 | `<prefix>-project-context.instructions.md` with `applyTo: "**"`, project-tailored broad context |
 | Conductor agent | 1 | Orchestrates the full workflow |
 | Specialist agents | 3+ | Cover implementation, testing, and review at minimum. Code Reviewer is the default review role (combined technical + functional). |
 | Skills | 2+ | Delivery workflow (mandatory) + domain-specific |
@@ -28,15 +29,15 @@ Bundles below these minimums are Standard or Lean, not Full.
 
 Fail when any critical defect exists:
 - Generation Principles not encoded in generated agents — every generated agent must include the 8 non-negotiable principles from SKILL.md as actionable instructions
-- Context optimization violated: `copilot-instructions.md` bloated beyond necessity, static rules duplicated across agents instead of centralized, hand-offs repeat full context instead of delta summaries
-- Bundle evolution guidance missing from generated `copilot-instructions.md`
+- Context optimization violated: project context instruction bloated beyond necessity, static rules duplicated across agents instead of centralized, hand-offs repeat full context instead of delta summaries
+- Bundle evolution guidance missing from generated project context instruction
 - Drift indicators present: agents reference removed files, outdated APIs, or abandoned conventions without correction
-- Documentation refresh was skipped, used broken URLs, or the brief was persisted in target project
 - Descriptions too weak for discovery
 - Primitives redundant or missing (under-built for workflow complexity)
 - Domain skills created for technology areas with thin project usage signal, or skills that only one agent uses — domain knowledge for single-agent or thin-signal domains belongs in agent instructions or instruction files, not dedicated skills
-- Swift Skills Reader brief used exhaustively (one skill per community domain) instead of selectively based on project signal
-- Project has rich business-domain complexity, but the bundle stores business rules only as scattered agent prose or an overstuffed `copilot-instructions.md`, with no appropriate shared business knowledge artifact
+- Apple domain guidance cannot be traced back to analyzer evidence from code, config, tests, resources, or project metadata
+- Apple domain skills generated one-per-technology-area instead of from evidence-backed multi-agent reuse
+- Project has rich business-domain complexity, but the bundle stores business rules only as scattered agent prose or an overstuffed project context instruction, with no appropriate shared business knowledge artifact
 - A business domain registry, domain map, domain-scoped instructions, or business-domain skill was generated, but the relevant agents do not explicitly consume it in inputs, hand-offs, or decision rules
 - Full kit missing required supporting artifacts without credible justification
 - Behavioral patterns missing for the role — see SKILL.md artifact requirements for the complete checklist per role (implementor verify-fix loop, reviewer deep context, investigator impact matrix, orchestrator auto-routing, etc.)
@@ -54,14 +55,17 @@ Fail when any critical defect exists:
 - `agents` frontmatter uses block list syntax (`- item`) instead of inline JSON-style array (`["Name A", "Name B"]`)
 - `agents` frontmatter references filenames (e.g., `*.agent.md` or `*.agent`) instead of exact agent display names (the `name` value from target agent frontmatter)
 - `description` frontmatter is not a double-quoted string
-- Frontmatter contains keys not documented in current official Copilot documentation
+- Frontmatter contains keys not documented in current official Copilot documentation (agents: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`; prompts: `description`, `agent`)
+- Prompt files use `mode` instead of `agent` for routing to a specific agent
 - Generated non-template files contain unresolved placeholders like `<...>`
 - Build/test commands use hardcoded simulator device names instead of project-derived destinations
 - Verify-fix loop missing lint step when linter is configured, or lint warnings not treated as failures (must use `--strict` or equivalent)
 - Test strategy defaults to full-suite for routine changes, or lacks an explicit targeted-test-first policy with clear full-suite escalation criteria
 - Hook guidance unsafe/unjustified or hook omission unexplained
 - New agents conflict with existing agents or existing agents not evaluated first
-- Cross-reference integrity violations: orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, wrong copilot-instructions filename
+- Cross-reference integrity violations: orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, missing project context instruction
+- `copilot-instructions.md` missing or not updated: target project must have a workspace-level instruction file that integrates with the generated agent ecosystem; when the target project already had one, existing relevant content must be preserved
+- `copilot-instructions.md` content duplicates `<prefix>-project-context.instructions.md` instead of being a concise overview with cross-references
 - Linting tools handled via hooks when instructions + agent validation steps would be more effective — validate against `hook-checklist.md`
 
 ## Audit Dimensions
@@ -73,10 +77,10 @@ Descriptions concrete, keyword-rich, role-specific? Users naturally phrase reque
 Conductor/specialist split justified? Primitive mix comprehensive and coherent? Apple role families add value?
 
 ### 3. Execution Quality
-Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Documentation refresh applied? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification with options plus continuation defaults? Shared business knowledge stored in the right primitive and explicitly consumed by the agents that need it?
+Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification with options plus continuation defaults? Shared business knowledge stored in the right primitive and explicitly consumed by the agents that need it?
 
 ### 4. Apple Specificity And Technology Alignment
-Platforms, frameworks, concurrency, testing, accessibility, localization explicit? Generated agents aligned to the project's actual technology profile from the analyzer (not kit fallback defaults)? If the project uses an older Swift version, less strict concurrency, or UIKit-primary architecture, do the generated agents reflect that accurately instead of assuming latest defaults?
+Platforms, frameworks, concurrency, testing, accessibility, localization, capabilities, and lifecycle explicit? Generated agents aligned to the project's actual technology profile and Apple domain evidence from the analyzer (not kit fallback defaults)? If the project uses an older Swift version, less strict concurrency, UIKit-primary architecture, or project-specific platform capabilities, do the generated agents reflect that accurately instead of assuming latest defaults?
 
 ### 5. Scope Discipline and Maintainability
 Files single-purpose? `applyTo` narrow? Bundle can evolve without drift?
@@ -99,9 +103,8 @@ Do not PASS with "accepted" or "acknowledged" minor issues. Every finding must b
 
 - Verdict
 - Score by dimension (including ecosystem coherence)
-- Documentation currency assessment
-- Cross-reference integrity status (orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, copilot-instructions naming)
-- Supporting artifact coverage assessment (`copilot-instructions.md`, skills, instructions, prompts, templates)
+- Cross-reference integrity status (orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, project context instruction presence, `copilot-instructions.md` presence and quality)
+- Supporting artifact coverage assessment (`copilot-instructions.md`, project context instruction, skills, instructions, prompts, templates)
 - Behavioral pattern compliance by role
 - Workflow-family coverage matrix with pass/revise per family
 - All findings listed with severity and resolution status — PASS requires every finding resolved

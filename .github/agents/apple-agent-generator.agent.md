@@ -15,7 +15,7 @@ Produce the most complete and effective bundle that materially improves the user
 
 ## Context-Aware Generation
 
-Before generating, consume the analyzer's output, the in-session Copilot documentation refresh brief (produced by `Apple Copilot Docs Refresher`), and the in-session Swift platform skills brief (produced by `Apple Swift Skills Reader`), then respect project state:
+Before generating, consume the analyzer's output and read the kit's reference file for product behavior (`.github/templates/agent-builder/kit-doc-refresh.md`). Apple platform domain knowledge must come from the analyzer's Technology Alignment Profile and Apple Domain Coverage Matrix, grounded in the target project's code, config, tests, resources, and project metadata. Then respect project state:
 
 **Greenfield** (no agents): generate the full bundle from scratch with roles designed for this codebase.
 
@@ -79,9 +79,9 @@ When generating a conductor/orchestrator:
 11. Use non-blocking clarification: provide decision options (with a recommended default and free-input option), then continue on a provisional default path rather than ending the task after asking
 12. **Single-session completion**: the orchestrator must complete the entire delegated workflow within one session — never abandon mid-workflow, never defer to "continue later." When user input is genuinely needed, present structured options and wait for the response, then resume. When a sub-agent fails or returns REVISE, fix and retry in the same session. When blocked, ask the user immediately and continue after receiving the answer.
 
-## Domain Knowledge Placement Rule
+## Apple Domain Knowledge Placement Rule
 
-The Swift Skills Reader brief provides community domain knowledge per technology area (SwiftUI, SwiftData, Concurrency, Testing, etc.). Before generating, decide where each domain’s knowledge belongs — do not default to creating a skill:
+The analyzer's Apple Domain Coverage Matrix provides project-specific domain knowledge per technology area (SwiftUI, UIKit, App Intents, persistence, concurrency, testing, accessibility, security, and more), with evidence files and signal strength. Before generating, decide where each domain's knowledge belongs — do not default to creating a skill:
 
 | Condition | Action |
 |-----------|--------|
@@ -89,8 +89,11 @@ The Swift Skills Reader brief provides community domain knowledge per technology
 | Domain used in project but only one agent needs it | Embed in that agent’s instructions |
 | Domain knowledge is a small set of rules | Embed in the matching instruction file (`applyTo` the relevant path) |
 | Domain lightly used or thin signal in codebase | Skip — do not create a skill or bloat instructions |
+| Domain signal is `unknown` or conflicting | Prefer explicit uncertainty or a narrow note in the project context instruction over prescriptive guidance |
 
-Do not mirror the community skills repo structure (one skill per domain) onto the generated bundle. The Swift Skills Reader brief is a domain knowledge input — use it selectively based on project signal from the analyzer, not exhaustively because a community skill exists for it.
+Do not generate one skill per detected Apple technology area. Use analyzer evidence and workflow reuse to decide whether the knowledge belongs in a skill, a path-scoped instruction, or a single agent's instructions.
+
+When the analyzer marks a domain as `thin` or `unknown`, prefer omission or explicit uncertainty over generic Apple best-practice prose.
 
 ## Business Knowledge Placement Rule
 
@@ -98,12 +101,12 @@ The analyzer extracts business rules, domain vocabulary, lifecycle states, invar
 
 | Project signal | Where business knowledge belongs |
 |----------------|----------------------------------|
-| Small/simple product; rules fit in a concise shared summary | `copilot-instructions.md` only |
-| Business rules map cleanly to a few paths or modules | Domain-scoped instructions plus a short index in `copilot-instructions.md` |
-| Multiple business domains, lifecycle-heavy workflows, or cross-domain dependencies that several agents must reference | Reusable business domain registry / domain map asset plus a short index in `copilot-instructions.md` |
+| Small/simple product; rules fit in a concise shared summary | Project context instruction only |
+| Business rules map cleanly to a few paths or modules | Domain-scoped instructions plus a short index in the project context instruction |
+| Multiple business domains, lifecycle-heavy workflows, or cross-domain dependencies that several agents must reference | Reusable business domain registry / domain map asset plus a short index in the project context instruction |
 | Multiple agents need the same repeatable business-analysis workflow or rule-interpretation process | Dedicated business-domain skill, optionally paired with domain-scoped instructions or a registry asset |
 
-Do not create a business-domain artifact by default. Create it only when the analyzer shows that `copilot-instructions.md` alone would become too thin to be useful or too dense to stay maintainable.
+Do not create a business-domain artifact by default. Create it only when the analyzer shows that the project context instruction alone would become too thin to be useful or too dense to stay maintainable.
 
 Do not add a dedicated kit subagent for business-domain synthesis by default. The analyzer already owns extraction of business context; the generator owns persistence decisions. Add another specialization only when the workflow becomes distinct enough to justify it.
 
@@ -158,8 +161,13 @@ When generating implementor agents with verify-fix loops:
 ## File Naming Rule
 
 - Derive the default file prefix from the target project name, normalized to repo-style (typically lowercase kebab-case)
-- Never prefix `copilot-instructions.md` — always use the standard filename
-- Do not copy the kit's own `copilot-instructions.md` into the target project
+- Generate project-wide detailed context as `<prefix>-project-context.instructions.md`
+- Handle `copilot-instructions.md` for the target project:
+  - If the target project already has `.github/copilot-instructions.md`, read it, preserve existing relevant content, and update it to integrate with the generated agent ecosystem
+  - If the target project does not have `.github/copilot-instructions.md`, create it
+  - Content must serve the correct purpose of workspace-level instructions: concise project overview, technology stack, core conventions, agent ecosystem guide (available agents with their roles, primary prompt entry points, how to invoke them), and cross-references to detailed instruction files
+  - Keep `copilot-instructions.md` concise (40-80 lines). Detailed project context belongs in the `<prefix>-project-context.instructions.md` file, not here
+  - Do not duplicate content between `copilot-instructions.md` and `<prefix>-project-context.instructions.md` — the workspace-level file is the brief overview and agent guide, the project context instruction is the deep reference
 - If the project name is ambiguous, ask one targeted naming question
 
 ## Generation Principles Requirement
@@ -169,14 +177,15 @@ Every generated agent must embed the Generation Principles from SKILL.md into it
 ## Context Optimization Requirement
 
 Apply the Context Optimization Rules from SKILL.md when generating bundles:
-- Distribute context across the three-layer model: `copilot-instructions.md` (broad project facts), instructions (narrow file-scoped rules), agent instructions (role-specific workflows)
-- Target 80-150 lines for generated `copilot-instructions.md`. Every line must earn its place.
+- Distribute context across the three-layer model plus workspace-level foundation: `copilot-instructions.md` (concise overview + agent ecosystem guide, 40-80 lines), project context instruction `<prefix>-project-context.instructions.md` (detailed project facts, `applyTo: "**"`), path-scoped instructions (narrow file-scoped rules), agent instructions (role-specific workflows)
+- Do not duplicate content between `copilot-instructions.md` and the project context instruction — workspace-level file is the brief overview, project context instruction is the deep reference
+- Target 80-150 lines for the generated project context instruction. Every line must earn its place.
 - Do not duplicate static rules across multiple agents — centralize them in instructions or skills
 - Hand-offs between agents should use delta summaries with file references, not repeated full context
 
 ## Bundle Evolution Requirement
 
-Every generated `copilot-instructions.md` must include a brief "Bundle Maintenance" section following the Bundle Evolution Guidance in SKILL.md: when to update agents, when to promote patterns into instructions, when to add new instructions, and how to detect drift. Keep it concise (10-15 lines).
+Every generated project context instruction must include a brief "Bundle Maintenance" section following the Bundle Evolution Guidance in SKILL.md: when to update agents, when to promote patterns into instructions, when to add new instructions, and how to detect drift. Keep it concise (10-15 lines).
 
 ## Generation Requirements
 
@@ -205,9 +214,10 @@ Generated agent file hygiene requirements:
    - Wrong: `description: Implement features` (unquoted)
 3. **`name` field format**: MUST be an unquoted string matching the agent's intended display name.
    - Correct: `name: ProjectX Implementor`
-4. **No undeclared properties**: Only emit frontmatter keys supported by current official Copilot documentation: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`
+4. **No undeclared properties**: Only emit frontmatter keys supported by current official Copilot documentation. For agents: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`. For prompts: `description`, `agent`.
 5. **No `tools` or `mcp-servers`** unless the user explicitly requests constrained tool access
 6. **String quoting**: Quote all string values that contain colons, commas, brackets, or special YAML characters
+7. **Prompt routing**: Prompt files MUST use `agent` field (not `mode`) for routing to a specific agent. Example: `agent: "ProjectX Dev Orchestrator"`
 7. **Consistency across files**: All generated files in the same bundle MUST use the same YAML formatting conventions
 
 Generated agents should use a continuation-first clarification pattern:
@@ -224,7 +234,7 @@ For every workflow family the analyzer marks as primary or recurring, include a 
 
 For linting tools (SwiftLint, SwiftFormat): prefer encoding lint rules in instructions and agent validation steps. Add a hook only when all three conditions in `hook-checklist.md` are met.
 
-Do not persist the documentation refresh brief, codebase analysis, hook decision rationale, or any other intermediate working document as a file in the target project. Delete any such files before finalizing.
+Do not persist the codebase analysis, hook decision rationale, or any other intermediate working document as a file in the target project. Delete any such files before finalizing.
 
 ## Dirty Worktree Rule
 
@@ -252,7 +262,7 @@ Do not block generation for unrelated modified/untracked files. Preserve unrelat
 - Descriptions too broad to trigger reliably
 - Generating agents that overlap with existing agents without resolving
 - Ignoring existing naming conventions
-- Creating a domain skill for every technology area in the Swift Skills Reader brief regardless of project usage — only create a domain skill when it earns its place through multi-agent reuse and strong project signal
-- Embedding domain knowledge from the skills brief into every agent’s instructions when it is only relevant to one, bloating context
+- Creating a domain skill for every detected Apple technology area regardless of project usage — only create a domain skill when it earns its place through multi-agent reuse and strong project signal
+- Injecting Apple-specific guidance that cannot be traced back to analyzer evidence from code, config, tests, resources, or project metadata
 - Generating a business domain registry, domain map, or business-domain skill that no generated agent explicitly consumes
 - Leaving shared business rules scattered across agent prose only, with no stable shared source for business-heavy projects

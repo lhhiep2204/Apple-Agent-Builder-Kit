@@ -5,13 +5,14 @@ description: "<Concrete trigger phrases describing when this agent should be use
 
 # <Agent Name>
 
-Frontmatter rules:
+<!-- Scaffolding notes — apply these rules when generating, then remove this block from the output:
 - `agents` (only when subagents are needed): MUST use inline array with exact display names
   - Correct: `agents: ["Exact Agent Display Name 1", "Exact Agent Display Name 2"]`
   - Wrong: `agents:\n  - some-agent.agent` (block list with filenames)
   - Wrong: `agents:\n  - Some Agent Name` (block list even with display names)
 - Do not include `tools` or `mcp-servers` unless explicitly requested
 - `description` must be a double-quoted string with trigger phrases
+-->
 
 ## Mission
 

@@ -1,29 +1,26 @@
 # Copilot Documentation Refresh Registry
 
-Use this registry before generating or updating any Copilot customization bundle. The goal is to ground output in the latest official GitHub Copilot behavior instead of relying only on repository-local patterns.
+This registry is used during **kit maintenance only** — when the kit owner runs `Apple Copilot Docs Refresher` to update `kit-doc-refresh.md`. It is NOT used during target project generation.
 
-## Mandatory Refresh Rule
+During generation, the generator reads `kit-doc-refresh.md` directly for Copilot product behavior rules. This registry exists so the refresher agent knows which sources to fetch when updating that file.
 
-Before `/generate-workflow-agents`, `/add-agent`, or any direct Agent Builder generation flow:
+## Kit Maintenance Refresh Procedure
+
+When the kit owner invokes `Apple Copilot Docs Refresher`:
 
 1. Fetch the current content of every URL in the **Mandatory Source Set**.
 2. Validate that each mandatory URL is still reachable and still points to the intended official GitHub or VS Code documentation page.
 3. If a mandatory URL is broken, moved, or no longer canonical, locate the current official replacement URL, update this registry before continuing, and record the change in the refresh brief.
-2. Extract only the facts that can change generation decisions, such as supported frontmatter, tool behavior, hook behavior, custom instruction precedence, MCP behavior, environment constraints, and newly documented best practices.
-3. Produce a short **documentation refresh brief** using `.github/templates/agent-builder/copilot-doc-refresh-brief-template.md` and include:
-   - fetch date
-   - URLs consulted
-   - any repaired or replaced source URLs
-   - changed or newly relevant product facts
-   - generation constraints or opportunities implied by those facts
-4. Use that refresh brief as an in-session input to analysis and generation. Do not persist it as a file in the target project.
-5. If any mandatory source is unavailable, continue only if the remaining sources still cover the requested artifact. Explicitly mark the missing source as a risk.
+4. Extract only the facts that can change generation decisions, such as supported frontmatter, tool behavior, hook behavior, custom instruction precedence, MCP behavior, environment constraints, and newly documented best practices.
+5. Produce a short **documentation refresh brief** using `.github/templates/agent-builder/kit-doc-refresh-template.md`.
+6. Update `.github/templates/agent-builder/kit-doc-refresh.md` with the result.
+7. If any mandatory source is unavailable, continue only if the remaining sources still cover the requested artifact. Explicitly mark the missing source as a risk.
 
-Do not skip this step just because similar files already exist in the repository. A stale or broken registry entry is a maintenance defect and must be repaired when discovered.
+A stale or broken registry entry is a maintenance defect and must be repaired when discovered.
 
 ## Mandatory Source Set
 
-These sources should be refreshed on every agent-add or workflow-generation run.
+These sources must be fetched when the kit owner runs `Apple Copilot Docs Refresher` to update `kit-doc-refresh.md`.
 
 | URL | Why it is mandatory |
 |-----|----------------------|

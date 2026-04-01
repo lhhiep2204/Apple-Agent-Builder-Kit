@@ -1,5 +1,5 @@
 ---
-description: "Generate, verify, or improve a full Apple-platform development workflow agent kit: refresh docs, analyze the repo, then create, audit, or update agents with quality gating."
+description: "Generate, verify, or improve a full Apple-platform development workflow agent kit: analyze the repo, then create, audit, or update agents with quality gating."
 agent: "Agent Builder"
 ---
 
@@ -14,17 +14,16 @@ Do not start with a broad interview — extract context by analyzing the codebas
 
 ## Standard User-Facing Progress
 
-1. Refresh Copilot documentation and Swift domain knowledge
-2. Analyze the codebase
-3. Assess the project and choose bundle architecture
-4. Ask targeted follow-up only if needed
-5. Generate or update the bundle
-6. Audit and iterate until PASS
-7. Deliver the final result
+1. Analyze the codebase
+2. Assess the project and choose bundle architecture
+3. Ask targeted follow-up only if needed
+4. Generate or update the bundle
+5. Audit and iterate until PASS
+6. Deliver the final result
 
-Do not add extra top-level phases for internal setup. Phase 4 auto-skips when no ambiguity remains.
+Do not add extra top-level phases for internal setup. Phase 3 auto-skips when no ambiguity remains.
 
-Complete the entire workflow — from refresh through delivery — in this session. When user input is needed, ask with structured options and wait for the response, then continue. Never leave generation incomplete.
+Complete the entire workflow through delivery in this session. When user input is needed, ask with structured options and wait for the response, then continue. Never leave generation incomplete.
 
 ## Target Roles
 
@@ -41,22 +40,20 @@ Optionally: project-specific codebase analyzer for large/unfamiliar repos.
 
 ## Execution Steps
 
-1. **Refresh docs** — Run in parallel: (A) Fetch current Copilot documentation via `Apple Copilot Docs Refresher`, validate mandatory source URLs, repair broken links, produce in-session refresh brief; (B) Fetch Swift Agent Skills via `Apple Swift Skills Reader` from `https://github.com/twostraws/Swift-Agent-Skills`, produce in-session domain knowledge brief. Do not persist either brief in the target project.
-2. **Analyze** — Deeply scan project: architecture, conventions, domain, existing agents, build setup, testing, delivery workflow. Classify project state. Recommend where shared business knowledge should live: `copilot-instructions.md` only, domain-scoped instructions, a business domain registry / domain map, or a reusable business-domain skill.
-3. **Assess** — Summarize: project state, constraints, recommended bundle shape, gaps, workflow-family coverage matrix.
-4. **Clarify only if needed** — Ask minimum targeted questions only if a missing fact would materially change architecture.
-5. **Generate** — Produce full workflow kit per SKILL.md bundle shape. For established projects: improve weak agents, add missing roles, tighten collaboration contracts. Reference real project conventions. Apply refresh brief. Name generated files with project-derived prefix. When project business complexity warrants it, generate the appropriate shared business knowledge artifact and wire it into the relevant agents' inputs and decision rules.
-6. **Audit** — Full audit including ecosystem coherence. Every finding (major and minor) must be resolved.
-7. **Revise** — If `REVISE`, fix every finding and re-audit. Do not accept or skip minor findings. Repeat until `PASS` with zero open issues.
-8. **Deliver** — Complete bundle with architecture rationale, documentation sources, and residual risks (only genuine uncertainties, not fixable weaknesses).
+1. **Analyze** — Deeply scan project: architecture, conventions, domain, existing agents, build setup, testing, delivery workflow. Classify project state. Recommend where shared business knowledge should live: project context instruction only, domain-scoped instructions, a business domain registry / domain map, or a reusable business-domain skill.
+2. **Assess** — Summarize: project state, constraints, recommended bundle shape, gaps, workflow-family coverage matrix.
+3. **Clarify only if needed** — Ask minimum targeted questions only if a missing fact would materially change architecture.
+4. **Generate** — Produce full workflow kit per SKILL.md bundle shape. For established projects: improve weak agents, add missing roles, tighten collaboration contracts. Reference real project conventions. Name generated files with project-derived prefix, while treating `.github/copilot-instructions.md` as the standard non-prefixed workspace-level file: create it if missing, or update it if present while preserving relevant existing content. Also generate `<prefix>-project-context.instructions.md` for deeper reference context. When project business complexity warrants it, generate the appropriate shared business knowledge artifact and wire it into the relevant agents' inputs and decision rules.
+5. **Audit** — Full audit including ecosystem coherence. Every finding (major and minor) must be resolved.
+6. **Revise** — If `REVISE`, fix every finding and re-audit. Do not accept or skip minor findings. Repeat until `PASS` with zero open issues.
+7. **Deliver** — Complete bundle with architecture rationale and residual risks (only genuine uncertainties, not fixable weaknesses).
 
 Final quality expectation: zero open findings (including minor) and zero editor diagnostics in generated agent files before completion.
 
 ## Constraints
 
 - Every agent must reference real project conventions, not generic boilerplate
-- Refresh official Copilot sources before generation; repair broken URLs
-- Project-derived file prefix for generated artifacts; standard filename for `copilot-instructions.md`
+- Project-derived file prefix for generated artifacts
 - Full workflow kit includes supporting skills, instructions, prompts, templates per SKILL.md bundle shapes
 - Shared business knowledge must be stored in the lightest effective primitive; do not always create a registry/skill and do not leave business-heavy projects with only scattered agent prose
 - Bidirectional cross-references between agents and skills; delete intermediate files before finalizing
