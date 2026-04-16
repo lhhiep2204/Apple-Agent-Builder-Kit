@@ -10,10 +10,10 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 
 ## Quick Checks
 
-0. **Generation Principles**: all 8 principles from SKILL.md encoded in every generated agent? Context optimization rules applied (three-layer model, concise project context instruction, no duplication)? Bundle evolution guidance present in generated project context instruction? No drift indicators (stale file refs, abandoned conventions)?
+0. **Generation Principles**: all 8 principles from SKILL.md encoded in every generated agent? Principle #5 (clarify before acting) explicitly requires `vscode_askQuestions`? Context optimization rules applied (three-layer model, concise project context instruction, no duplication)? Bundle evolution guidance present in generated project context instruction including steering loop and entropy management? No drift indicators (stale file refs, abandoned conventions)?
 1. **Discovery**: descriptions concrete, keyword-rich, likely to match real user requests?
 2. **Architecture**: each artifact necessary? Conductor/specialist split justified? Bundle complete for workflow? Domain skills created based on multi-agent reuse + strong project signal from analyzer evidence? Domain knowledge for single-agent or thin-signal domains embedded in agent instructions or instruction files rather than separate skills? Business knowledge stored in the lightest shared primitive that fits the project's complexity, rather than always creating a registry/skill or always overloading the project context instruction?
-3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Agents that interact with external services include explicit MCP tool preference (prefer MCP over URL fetching)? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification is non-blocking (options + default continuation), not ask-and-stop? Orchestrator includes single-session completion rule (never abandon mid-workflow, ask and wait when blocked)? If a business domain registry, domain map, domain-scoped instruction, or business-domain skill exists, do the relevant agents explicitly consume it?
+3. **Execution**: constraints explicit? Output contracts clear? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Validation guidance repo-grounded? Generated agents avoid frontmatter `tools` and `mcp-servers` unless explicitly requested? Agents that interact with external services include explicit MCP tool preference (prefer MCP over URL fetching)? Build/test commands use project-derived simulator destinations (not hardcoded device names)? Verify-fix loop includes lint with `--strict` when linter is configured? Test strategy defaults to targeted tests and escalates to full-suite only under explicit risk/release criteria? Orchestrator clarification uses `vscode_askQuestions` (not plain-text questions), is non-blocking (options + default continuation), not ask-and-stop? Orchestrator includes single-session completion rule (never abandon mid-workflow, ask via `vscode_askQuestions` and wait when blocked)? Orchestrator includes planning lane for complex tasks (decomposition → plan persistence → chunked execution → intermediate validation)? Context persistence strategy present (session memory for investigation/plans, `manage_todo_list` for progress tracking, context compaction for long tasks)? If a business domain registry, domain map, domain-scoped instruction, or business-domain skill exists, do the relevant agents explicitly consume it? Harness engineering aligned: feedforward/feedback controls distinguished, investigation output is structured repository impact map, inter-agent outputs optimized for agent legibility, steering loop in bundle evolution, entropy management in orchestrator?
 4. **Apple Specificity**: platforms, frameworks, concurrency, testing, accessibility, localization, capabilities, and lifecycle explicit? Generated agents aligned to the project's actual technology profile and analyzer evidence, not kit fallback defaults or generic Apple assumptions?
 5. **Scope Discipline**: files single-purpose? `applyTo` narrow? No drift risk?
 6. **Ecosystem Coherence**: no naming conflicts? No role overlap? Existing agents evaluated?
@@ -28,6 +28,85 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 - No intermediate files left in target project
 - `copilot-instructions.md` present (created or updated) with workspace-level content: concise project overview, tech stack, conventions, agent ecosystem guide, cross-references. Not duplicating `<prefix>-project-context.instructions.md` content. When the target project had an existing file, relevant prior content preserved.
 - Project context instruction present with `applyTo: "**"`
+- Constitution present with `applyTo: "**"` — all agents acknowledge it
+- Spec pipeline skills present — wired into orchestrator
+
+## Constitution Checks
+
+- `<prefix>-constitution.md` exists as an instruction file with `applyTo: "**"`
+- Articles reference actual project conventions, not generic boilerplate
+- Phase -1 gates present (Simplicity, Duplication, Business Logic, Impact)
+- Evidence standard (Article II) aligns with agent evidence labeling behavior
+- All generated agents include a note acknowledging the constitution
+
+## Spec-Driven Pipeline Checks
+
+- Refine-User-Input skill normalizes raw requests into structured format
+- Specify-Feature skill produces specs in `specs/<feature-id>/spec.md`
+- Plan-Implementation skill produces plans in `specs/<feature-id>/plan.md`
+- Generate-Tasks skill produces task breakdowns in `specs/<feature-id>/tasks.md`
+- Customized templates generated for the target project
+- Orchestrator activates pipeline for non-trivial features (>3 files, cross-module, business logic)
+- Trivial changes (single-file fixes, typos, config edits) skip the spec pipeline
+
+## Separated Review Pipeline Checks
+
+- Full 4-agent review pipeline generated: Code Review Orchestrator + Functional Reviewer + Technical Reviewer + Platform Reviewer
+- Platform Reviewer is conditionally triggered at runtime (only when Swift/SwiftUI/UIKit files changed)
+- Short-circuit rule: Functional Reviewer BLOCKER → REJECT immediately, skip remaining stages
+- Every review finding includes: code anchor, evidence type, severity, fix suggestion
+- Code Review Orchestrator routes to sub-reviewers in correct order and aggregates verdicts
+
+## Handoffs Checks
+
+- Every agent that delegates to other agents has `handoffs:` in YAML frontmatter
+- Handoffs array includes all agents the delegator routes to
+- Each handoff has: `agent` (exact display name), `label` (short action text), `prompt` (contextual)
+- Orchestrators have handoffs to all specialist agents
+- Specialist agents have handoffs back to orchestrator for completion/escalation
+- Agents that never delegate (leaf specialists) do NOT have handoffs
+
+## Evidence Standard Checks
+
+- All agents define evidence labels: code/doc-backed (no label), `[USER-CONFIRMED]`, `[ASSUMPTION]`, `[NEEDS CLARIFICATION]`
+- Investigators mark uncertain findings as `[ASSUMPTION]`
+- Implementors verify `[ASSUMPTION]` before coding
+- Reviewers challenge unresolved `[ASSUMPTION]` labels
+- Orchestrators track assumption resolution across phases
+- Constitution Article II (if present) codifies the standard
+
+## Runtime Docs Checks
+
+- User playbook references actual generated agent names and prompts
+- Review playbook explains the actual review pipeline configuration
+- Playbooks are practical operating guides, not abstract reference docs
+
+## Bundle Completeness Checks
+
+- Bundle includes all components from the Full Workflow Kit Minimums table
+- No components omitted without explicit justification
+- Bundle is complete regardless of project size — agents adapt behavior to context, but no features are withheld
+
+## Hooks Checks
+
+- When SwiftFormat/SwiftLint detected: hook generated or explicit skip rationale provided
+- Hook files include explanatory comments
+- Hooks use analyzer-detected scheme/destination for compile checks
+- Hooks validated against `hook-checklist.md` three-condition test
+
+## Generated File Marking Checks
+
+- Every generated file includes `<!-- Generated by Apple Agent Builder Kit -->` immediately after the YAML frontmatter closing `---`
+- Marker is NOT placed before frontmatter (that breaks YAML parsing and causes editor diagnostics)
+- Template files within the kit itself do NOT have markers — only target project files
+- The kit uses this exact marker pattern to identify generated files during refresh and maintenance
+
+## Cross-Session Persistence Checks
+
+- Generated orchestrator includes cross-session persistence guidance for large tasks
+- Guidance covers: repo memory for durable state, persistent project files for migration tracking
+- Progress summary format is specified (completed phases, current status, remaining work, key decisions)
+- Session vs repo memory distinction is clear (session memory = within-session only; repo memory = across sessions)
 
 ## YAML Frontmatter Validity
 
@@ -45,6 +124,22 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 
 - Agents that interact with external services (issue trackers, project management, CI/CD, documentation) include explicit instructions to prefer MCP tools over URL fetching
 - No language that could be misread as "do not use MCP" — the guidance is "do not restrict MCP in frontmatter"
+
+## Clarification Tool Usage
+
+- All generated agents use `vscode_askQuestions` for structured clarification — never plain-text questions that end the session
+- Orchestrator clarification uses `vscode_askQuestions` with 2-4 options, recommended default, and free-input option
+- Principle #5 (clarify before acting on ambiguity) explicitly references `vscode_askQuestions`
+
+## Harness Engineering Alignment
+
+- Feedforward (guides) and feedback (sensors) controls are distinguished in the agent ecosystem
+- Computational controls (linters, type checkers, tests) and inferential controls (AI review) are identified and leveraged appropriately
+- Investigator output produces a structured repository impact map (real file paths, symbol names, dependency-ordered change groups) — not narrative prose
+- Inter-agent outputs are optimized for agent legibility (structured tables/lists, not paragraphs)
+- Bundle evolution guidance includes steering loop (improve harness when issues recur) and entropy management
+- Orchestrator includes planning lane for complex tasks with decomposition, plan persistence, and chunked execution
+- Context persistence strategy present: session memory for investigation/plans, `manage_todo_list` for progress, context compaction for long tasks
 
 ## Pass Rule
 

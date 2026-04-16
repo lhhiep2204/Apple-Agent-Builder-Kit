@@ -87,3 +87,49 @@ Use these as starting points when generating specific workflow assets. Adapt sec
 **Consumed by**: Auditor, Orchestrator, maintainers
 **Sections**: Coverage Improvements, Integration Changes (conductor routing, hand-offs), Conflict Checks, Audit Readiness
 **Validation**: No ambiguous or duplicated roles, conductor routing coherent
+
+### Execution Plan (for complex/large tasks)
+
+**Produced by**: Orchestrator planning lane or Investigator
+**Consumed by**: Implementor, Test Specialist, Code Reviewer, Orchestrator
+**Persisted to**: Session memory (`/memories/session/`) — not checked into the project repo
+**Sections**: Goal, Task Decomposition (ordered phases with dependency analysis), Phase Details (files, modules, risk level, validation criteria per phase), Current Status (not-started / in-progress / completed / blocked per phase), Key Decisions Log, Remaining Risks
+**Validation**: Each phase independently verifiable (build + tests pass), dependency order correct, scope per phase manageable, progress trackable via `manage_todo_list`
+
+### Repository Impact Map
+
+**Produced by**: Investigator
+**Consumed by**: Implementor, Code Reviewer, Orchestrator (for confirmation checkpoint)
+**Sections**: Change Summary, File-Level Changes (file path, change description, symbols to modify, existing patterns to follow), Dependency Order (which changes must happen first), Risk Assessment per change group, Human Confirmation Checkpoint
+**Validation**: All file paths real and verified, symbol names accurate, dependency order correct, risk levels assigned, structured as tables/lists for agent legibility (not narrative prose)
+
+### Feature Specification (Spec Pipeline)
+
+**Produced by**: Specify-Feature skill (triggered by Orchestrator or user)
+**Consumed by**: Plan-Implementation skill, Investigator, Implementor, Test Specialist
+**Sections**: Problem Statement, Scope and Non-Goals, Acceptance Criteria (testable Given/When/Then), Domain Rules (with evidence labels), Edge Cases, Dependencies, Technical Constraints, Open Questions
+**Validation**: Every AC independently testable, domain rules include evidence type, scope explicit
+**Location**: `specs/<feature-id>/spec.md`
+
+### Implementation Plan (Spec Pipeline)
+
+**Produced by**: Plan-Implementation skill
+**Consumed by**: Implementor, Orchestrator, Code Review Orchestrator
+**Sections**: Architecture Approach, File Changes (with dependency order, symbols, risk), Risk Assessment, Test Strategy, Rollback Plan, Phase -1 Gate Checklist
+**Validation**: File changes reference real project files, dependency order correct, Phase -1 gates checked
+**Location**: `specs/<feature-id>/plan.md`
+
+### Task Breakdown (Spec Pipeline)
+
+**Produced by**: Generate-Tasks skill
+**Consumed by**: Implementor (via `manage_todo_list`), Orchestrator
+**Sections**: Ordered task list (description, files, validation criteria, complexity, dependencies), Execution Notes, Validation Checkpoints
+**Validation**: Each task independently verifiable, complexity estimated, dependencies correct
+**Location**: `specs/<feature-id>/tasks.md`
+
+### Review Scope Document
+
+**Produced by**: Code Review Orchestrator or Orchestrator
+**Consumed by**: Functional Reviewer, Technical Reviewer, Platform Reviewer
+**Sections**: Change Summary, Blast Radius Assessment, Files Changed (grouped by risk), Spec Reference (if spec pipeline was used), Review Priority Areas, Evidence Baseline (which claims are code-backed vs `[ASSUMPTION]`)
+**Validation**: Blast radius assessed, priority areas identified, evidence baseline established

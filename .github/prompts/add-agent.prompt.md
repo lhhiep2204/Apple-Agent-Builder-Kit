@@ -23,7 +23,7 @@ When intent is ambiguous, check whether the user referenced existing files or de
 
 Phase 3 auto-skips when analysis provides enough context.
 
-Complete the entire workflow through delivery in this session. When user input is needed, ask with structured options and wait for the response, then continue. Never leave generation incomplete.
+Complete the entire workflow through delivery in this session. When user input is needed, use `vscode_askQuestions` to ask with structured options and wait for the response, then continue. Never write questions as plain text. Never leave generation incomplete.
 
 ---
 
@@ -33,7 +33,7 @@ Describe the agent you want to add below. Include: workflow or role, target user
 
 ### Execution Steps
 
-1. **Analyze** — Scan existing agents, skills, instructions, prompts. Understand conventions the new agent must follow. Identify overlap/gaps. If business-domain context is important, recommend where it should live (concise project context instruction summary, domain-scoped instructions, business domain registry / domain map, or business-domain skill).
+1. **Analyze** — Scan existing agents, skills, instructions, prompts. Understand conventions the new agent must follow. Identify overlap/gaps. If business-domain context is important, recommend where it should live (concise project context instruction summary, domain-scoped instructions, business domain registry / domain map, or business-domain skill). When MCP GitHub tools are available, discover relevant community skills from `twostraws/Swift-Agent-Skills` matched to the project's tech stack.
 2. **Assess** — Current ecosystem shape, overlap risks, integration needs, conductor routing changes if needed.
 3. **Clarify only if needed** — Ask minimum targeted questions for missing critical facts.
 4. **Generate** — Create new agent with: no role overlap, consistent naming, project-derived prefix, real conventions, supporting files (skill, instruction, prompt, template) when needed. Always create or update the target project's `.github/copilot-instructions.md` so the workspace-level guide stays aligned with the current agent ecosystem, while preserving relevant existing content. Create or update the paired `<prefix>-project-context.instructions.md` whenever shared project context or conventions should be reused across agents, and update it if it already exists. If business complexity warrants it, generate the lightest effective shared business artifact and wire it explicitly into relevant agent inputs/decision rules. Follow YAML frontmatter determinism rules: `agents` uses inline array with display names, `description` is double-quoted, no `tools`/`mcp-servers` unless requested. Include MCP tool preference for external service access.

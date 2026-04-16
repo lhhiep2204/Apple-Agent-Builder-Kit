@@ -41,7 +41,7 @@ Build a **role comparison matrix** showing each agent's role, responsibilities, 
 
 ### Agent Naming Conventions
 Identify the naming patterns used by existing agents:
-- agent name pattern (e.g., role-based: "Test Specialist", "Code Reviewer")
+- agent name pattern (e.g., role-based: "Test Specialist", "Implementor", "Functional Reviewer")
 - file name convention (e.g., kebab-case: `test-specialist.agent.md`)
 - description style (e.g., "[Action verb] for [Project]. [Key responsibilities].")
 
@@ -118,24 +118,45 @@ This profile is the authoritative source for the generator. Generated agents mus
 - what artifacts, reports, or checklists should be passed between agents at each hand-off
 - what signals should cause escalation to the user versus automatic iteration between agents
 
-### 6. Instruction And Hook Candidates
+### 6. Harness Engineering Assessment
+Assess the project's existing harness (feedforward guides and feedback sensors) so generated agents can leverage them:
+
+**Feedforward controls (guides)** — context that steers agents before they act:
+- existing architecture documentation, coding conventions, style guides in the repo
+- existing AGENTS.md, copilot-instructions.md, or similar agent guidance files
+- existing structured templates for tasks, features, or PRs
+- type system strictness (strong typing as implicit feedforward)
+
+**Feedback controls (sensors)** — checks that enable agent self-correction:
+- **Computational sensors**: linters (SwiftLint, SwiftFormat), type checkers, test suites, structural analysis tools, CI checks
+- **Inferential sensors**: existing code review agents, AI review tools, quality scoring
+- lint configuration details: which rules active, severity levels, custom rules with agent-friendly error messages
+- test suite speed and reliability (can tests run as fast feedback in verify-fix loops?)
+- custom linter messages: do error messages include remediation instructions useful for agents?
+
+**Harnessability assessment**:
+- how amenable is this codebase to harnessing? (strong types, clear module boundaries, existing tooling = high harnessability; weak types, tangled dependencies, no tooling = low)
+- what ambient affordances exist? (framework conventions, generated code patterns, clear file organization)
+- what harness gaps could be filled by generated agents? (missing structural tests, missing lint rules, missing architecture constraints)
+
+### 7. Instruction And Hook Candidates
 - candidate narrow `applyTo` scopes for implementation, tests, review artifacts, or docs
 - repeated repo conventions that belong in instructions instead of duplicated agent prose
 - deterministic commands safe enough to justify hook guidance
 - linting tools in use and whether they are better handled via instructions + agent validation steps or via hooks (validate against `hook-checklist.md`)
 
-### 7. Skill Candidates
+### 8. Skill Candidates
 - identify cross-agent reusable workflows and Apple domain areas that benefit from dedicated skills only when project signal is strong and multiple agents will reuse the knowledge
 - note which agents would use each candidate skill
 
-### 8. Prompt And Template Candidates
+### 9. Prompt And Template Candidates
 - identify primary delivery entry point and at least one secondary entry point
 - identify recurring hand-off moments that benefit from structured templates (use `workflow-asset-template.md` common patterns as reference)
 - candidate prompt descriptions and trigger phrases
 - identify which workflow families are primary, recurring, or unnecessary for this project
 - for each major family, identify likely specialists, hand-off order, iteration loop, escalation boundary
 
-### 9. Business Domain Context
+### 10. Business Domain Context
 - domain glossary
 - business rules
 - lifecycle states
@@ -153,7 +174,7 @@ For business knowledge persistence, recommend the lightest artifact that fits th
 - business domain registry / domain map asset when multiple domains, lifecycle-heavy flows, or cross-domain dependencies need shared reference
 - business-domain skill only when multiple agents will reuse the same repeatable business-analysis workflow
 
-### 10. Drift Detection
+### 11. Drift Detection
 
 When analyzing an established project (agents already exist), check for staleness signals:
 - Agents referencing files, modules, or targets that no longer exist in the codebase
@@ -165,7 +186,7 @@ When analyzing an established project (agents already exist), check for stalenes
 
 For each drift signal found, report: which file, what is stale, what the current state is, and recommended fix. Include a **drift summary** in the output with a count of stale references and severity assessment (cosmetic, misleading, or harmful).
 
-### 11. Project Context Instruction Content
+### 12. Project Context Instruction Content
 Extract the facts that belong in the project's `<prefix>-project-context.instructions.md` — broad context that every agent and Copilot interaction should share:
 - project overview and purpose
 - architecture summary (layer model, navigation, state management, DI)
@@ -176,6 +197,78 @@ Extract the facts that belong in the project's `<prefix>-project-context.instruc
 - if the project already has a project context instruction or `copilot-instructions.md`, evaluate its quality and identify gaps to fill
 - recommend whether `copilot-instructions.md` needs to be created from scratch or updated, and what content should be preserved vs added
 - if richer business artifacts are recommended, treat the project context instruction as the concise index and summary, not the full dumping ground for every rule
+
+### 13. Community Skill Discovery (MCP GitHub Conditional)
+
+When MCP GitHub tools are available (e.g., `mcp_github_get_file_contents` is accessible), use them to discover community agent skills relevant to the project's detected tech stack from the curated directory at `twostraws/Swift-Agent-Skills`.
+
+**Activation check**: Attempt to use MCP GitHub tools. If they are available, proceed. If not, skip this section entirely and note `community skill discovery: skipped — MCP GitHub not available` in the output.
+
+**Discovery steps**:
+1. Read the README.md of `twostraws/Swift-Agent-Skills` (owner: `twostraws`, repo: `Swift-Agent-Skills`, path: `README.md`) to get the full category listing and skill links
+2. Match discovered skill categories against the project's Technology Alignment Profile and Apple Domain Coverage Matrix:
+   - SwiftUI skills → when UI framework includes SwiftUI
+   - SwiftData skills → when persistence includes SwiftData
+   - Core Data skills → when persistence includes Core Data
+   - Swift Concurrency skills → when concurrency model is active
+   - Swift Testing skills → when testing framework includes Swift Testing
+   - Accessibility skills → when accessibility signal is moderate or strong
+   - Architecture skills → always relevant
+   - Security skills → when security/privacy signal is moderate or strong
+   - Performance skills → when performance signal is moderate or strong
+   - Tool skills, App Store skills, UI skills → match on relevant project signals
+3. For each matching category, follow links to the individual skill repositories and read their primary content files (SKILL.md, AGENTS.md, instructions.md, or README.md) using MCP GitHub (`mcp_github_get_file_contents`)
+4. Extract actionable domain knowledge: best practices, patterns, anti-patterns, conventions, and decision rules that are specific to the project's tech stack
+5. Record for each discovered skill: repo URL, category, relevance to project, key knowledge extracted, and recommended usage (embed in generated agents, recommend installation, or both)
+
+**Output**: Fill the "Community Skill Discovery Results" section of the analysis template with:
+- Discovery status (available/skipped)
+- Matched categories with evidence
+- Extracted domain knowledge per matching skill
+- Recommendations for the generator: which knowledge to embed in which generated agents, and which community skills to recommend users install
+
+**Important**: Community skill content supplements project-specific evidence — it does not replace it. When community skill guidance conflicts with patterns found in the target project's code, the project's actual patterns take precedence.
+
+### 14. Project Complexity Assessment
+
+Assess the project's size and complexity to help the generator produce proportionally detailed agent instructions:
+
+| Signal | Assessment |
+|--------|------------|
+| Developer count | Solo / 1-2 / 3-8 / 8+ |
+| Module/target count | 1-2 targets / 3-6 targets / 7+ targets |
+| Business domain complexity | Simple / Moderate / Complex / Multi-domain |
+| Process maturity | Minimal/ad-hoc / Some conventions / Formal process |
+| Existing agent ecosystem | None / Partial / Established |
+
+Output a complexity assessment with rationale. The generator uses this to calibrate the depth and specificity of generated agent instructions — not to restrict which agents or features are generated. Every project receives the full bundle; complexity affects instruction detail level.
+
+### 15. Spec Pipeline Readiness
+
+Assess whether the project would benefit from the spec-driven pipeline:
+- Does the project have existing spec/PRD/RFC conventions? If so, what format?
+- How are features currently planned? (informal → spec pipeline adds structure; formal → spec pipeline must align with existing format)
+- Are there recurring issues from under-specified features? (sign of spec pipeline need)
+- Is there a `specs/` or `docs/features/` directory already?
+- Recommend: skip spec pipeline, conditional activation, or always-on
+
+### 16. Review Pipeline Assessment
+
+Assess the project's review needs to recommend the appropriate review pipeline:
+- How are code reviews currently done? (single reviewer, multi-reviewer, no review)
+- Is there separation between business/functional review and technical review?
+- Are Apple-platform-specific concerns (memory, concurrency, SwiftUI) reviewed separately?
+- What is the blast radius of typical changes?
+- Recommend: full 4-agent separated review pipeline (Code Review Orchestrator + Functional + Technical + Platform). Note any project-specific nuances for Platform Reviewer trigger conditions
+
+### 17. Hooks Assessment
+
+Assess the project's hook readiness:
+- Is SwiftFormat configured? (`.swiftformat` file, Package.swift dependency, Xcode build phase)
+- Is SwiftLint configured? (`.swiftlint.yml`, build phase, SPM plugin)
+- Is the project Xcode-based with a clear default scheme for compile checks?
+- Are there existing pre-commit hooks or CI checks that hooks would duplicate?
+- Recommend: which hooks to generate, which to skip, and why
 
 ## Output Contract
 
@@ -189,6 +282,10 @@ The brief must include:
 - detected Apple platforms and project type
 - repo-grounded validation and automation surfaces
 - pre-generation assessment summary: what the kit thinks should be built, what gaps or conflicts it found, and what facts still need user confirmation before generation
+- **project complexity assessment** — developer count, module count, domain complexity, process maturity, and existing ecosystem status with rationale. Used by the generator to calibrate instruction detail level — not to restrict features or agent roles.
+- **spec pipeline readiness** — whether to skip, conditionally activate, or always-on, with rationale
+- **review pipeline recommendation** — full 4-agent separated pipeline, with project-specific Platform Reviewer trigger conditions
+- **hooks recommendation** — which hooks to generate based on detected tools (SwiftFormat, SwiftLint, xcodebuild)
 - workflow-family coverage matrix: planning, investigation, delivery, testing, review, ecosystem extension, and ecosystem verification/improvement, with notes on which lanes are primary, optional, or unnecessary for this project
 - recommended collaboration topology: which agents should hand work to which other agents, what order they should run in, and where iteration loops should happen automatically
 - hand-off contract candidates: the minimum inputs, outputs, and pass/fail criteria each specialist should exchange with upstream or downstream agents
@@ -197,6 +294,8 @@ The brief must include:
 - candidate prompt entry points (primary + secondary)
 - candidate template/checklist hand-off moments
 - linting tool detection and recommended handling (instruction vs hook)
+- **harness engineering assessment**: existing feedforward controls (docs, conventions, templates), existing feedback sensors (computational: linters, tests, type checking; inferential: review tools), harnessability rating (high/medium/low with rationale), ambient affordances, harness gaps that generated agents could fill
+- **community skill discovery results**: discovery status, matched categories, extracted domain knowledge, generator recommendations (embed knowledge + recommend installation). Skipped with explicit note when MCP GitHub is not available
 - **drift summary** with count of stale references, severity assessment, and recommended fixes (for established and mixed projects)
 - recommended content for project context instruction creation or update
 - candidate instruction scopes covering distinct convention domains (implementation, testing, UI, data layer, etc.)

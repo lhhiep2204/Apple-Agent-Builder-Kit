@@ -47,6 +47,33 @@
 - linting tools in use:
 - lint tool handling recommendation (instruction vs hook):
 
+## Harness Engineering Assessment
+
+### Feedforward Controls (Guides)
+- existing architecture documentation:
+- existing coding conventions in repo:
+- existing agent guidance files (AGENTS.md, copilot-instructions.md):
+- existing structured templates for tasks/features/PRs:
+- type system strictness (implicit feedforward):
+
+### Feedback Controls (Sensors)
+**Computational sensors** (deterministic, fast):
+- linters: <tool, config location, active rules, custom error messages?>
+- type checking: <strictness level>
+- test suites: <speed, reliability, can run in verify-fix loops?>
+- structural analysis: <tools>
+- CI checks: <what runs automatically>
+
+**Inferential sensors** (semantic, non-deterministic):
+- existing code review agents/tools:
+- AI review or quality scoring tools:
+
+### Harnessability Rating
+- rating: <high | medium | low>
+- rationale: <why — strong typing, clear boundaries, existing tooling = high; weak typing, tangled deps = low>
+- ambient affordances: <framework conventions, file organization clarity, generated code patterns>
+- harness gaps: <what feedforward/feedback controls could generated agents fill?>
+
 ## Delivery Workflow Behavioral Signals
 
 - verify-fix commands (build, test, lint) with expected timeouts:
@@ -205,12 +232,89 @@ Content to include in the project's `<prefix>-project-context.instructions.md`:
 - domain glossary:
 - general coding standards:
 
+## Project Complexity Assessment
+
+- complexity level: <low / moderate / high / very high>
+- rationale:
+
+### Complexity Evidence
+
+| Signal | Value | Implication for instruction detail |
+|--------|-------|------------------------------------|
+| Developer count | <solo / 1-2 / 3-8 / 8+> | <instruction detail note> |
+| Module/target count | <count> | <instruction detail note> |
+| Business domain complexity | <simple / moderate / complex> | <instruction detail note> |
+| Process maturity | <minimal / some / formal> | <instruction detail note> |
+| Existing agent ecosystem | <none / partial / established> | <instruction detail note> |
+
+## Spec Pipeline Readiness
+
+- recommendation: <skip | conditional activation | always-on>
+- rationale:
+- existing spec/PRD conventions:
+- existing feature planning process:
+- recurring under-specification issues:
+- existing `specs/` or `docs/features/` directory:
+
+## Review Pipeline Assessment
+
+- recommendation: full 4-agent separated pipeline (Code Review Orchestrator + Functional + Technical + Platform)
+- Platform Reviewer trigger conditions:
+- current review methodology:
+- functional/technical separation signal:
+- Apple-platform-specific review needs:
+- typical change blast radius:
+
+## Hooks Assessment
+
+- SwiftFormat detected: <yes/no, config location>
+- SwiftLint detected: <yes/no, config location>
+- Xcode-based with clear default scheme: <yes/no, scheme name>
+- Existing pre-commit hooks or CI checks:
+- recommendation: <which hooks to generate / skip and why>
+
+## Drift Summary (Established/Mixed Projects Only)
+
+- total stale references found:
+- severity: <cosmetic | misleading | harmful>
+- details:
+
+| File | What is stale | Current state | Recommended fix |
+|------|--------------|---------------|-----------------|
+| <file> | <stale reference> | <current state> | <fix> |
+
 ## Coverage Gaps And Conflict Risks
 
 - missing role coverage:
 - weak or redundant artifacts:
 - naming inconsistencies:
 - integration risks:
+
+## Community Skill Discovery Results
+
+- discovery status: <available — MCP GitHub used | skipped — MCP GitHub not available>
+- source repository: twostraws/Swift-Agent-Skills
+
+### Matched Categories
+
+| Category | Project signal | Matching skills found | Relevance |
+|----------|---------------|----------------------|-----------|
+| <category e.g. SwiftUI> | <tech alignment evidence> | <count> | <high / moderate / low> |
+
+### Extracted Domain Knowledge
+
+| Skill repo | Category | Key knowledge extracted | Recommended usage |
+|------------|----------|------------------------|-------------------|
+| <repo URL> | <category> | <actionable patterns, best practices, anti-patterns> | <embed in: implementor/test specialist/etc. + recommend install> |
+
+### Generator Recommendations
+
+- knowledge to embed in generated agents:
+  - <agent role>: <specific knowledge from community skills>
+- community skills to recommend users install:
+  - <skill name> (<repo URL>) — <why relevant to this project>
+- knowledge conflicts with project patterns (project patterns take precedence):
+  - <conflict description, if any>
 
 ## Recommended Role Families
 

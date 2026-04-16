@@ -11,19 +11,25 @@ Use `.github/templates/agent-builder/agent-audit-rubric.md` as a quick-reference
 
 ## Full Workflow Kit Minimums
 
-| Component | Minimum | Requirement |
-|-----------|---------|-------------|
-| `copilot-instructions.md` | 1 | Workspace-level instructions (created or updated). Concise project overview, tech stack, conventions, agent ecosystem guide, cross-references. 40-80 lines. |
-| Project context instruction | 1 | `<prefix>-project-context.instructions.md` with `applyTo: "**"`, project-tailored broad context |
-| Conductor agent | 1 | Orchestrates the full workflow |
-| Specialist agents | 3+ | Cover implementation, testing, and review at minimum. Code Reviewer is the default review role (combined technical + functional). |
-| Skills | 2+ | Delivery workflow (mandatory) + domain-specific |
-| Instructions | 2+ | Implementation + test conventions at minimum |
-| Prompts | 2+ | Primary delivery + secondary entry point |
-| Templates/Checklists | 2+ | Feature delivery + at least one other hand-off |
-| Hook decision | 1 | Explicit: hook when justified, or no-hook rationale |
+| Component | Minimum |
+|-----------|---------|
+| `copilot-instructions.md` | 1 |
+| Project context instruction | 1 |
+| Constitution | 1 |
+| Conductor agent | 1 |
+| Specialist agents | 5+ (impl, test, investigation, BA, review pipeline) |
+| Review agents | 4 (orchestrator + functional + technical + platform) |
+| Skills | 5+ (delivery + spec pipeline + domain-specific) |
+| Instructions | 3+ |
+| Prompts | 3+ (delivery + spec + secondary) |
+| Templates | 3+ (delivery + spec/plan/tasks) |
+| Docs | 2 (user playbook + review playbook) |
+| Hook decision | 1 |
+| Handoffs in frontmatter | All delegating agents |
+| Evidence standard | Embedded in agents + in constitution |
+| Review memory promotion | In orchestrator |
 
-Bundles below these minimums are Standard or Lean, not Full.
+Bundles below these minimums receive REVISE.
 
 ## Audit Standard
 
@@ -42,8 +48,9 @@ Fail when any critical defect exists:
 - Full kit missing required supporting artifacts without credible justification
 - Behavioral patterns missing for the role — see SKILL.md artifact requirements for the complete checklist per role (implementor verify-fix loop, reviewer deep context, investigator impact matrix, orchestrator auto-routing, etc.)
 - Collaboration lanes undefined for main use cases: hand-off order unclear, contracts missing, iteration loops absent
-- Orchestrator clarification behavior stops after asking questions, without choice options and a continuation path
+- Orchestrator clarification behavior stops after asking questions, without using `vscode_askQuestions` and a continuation path — plain-text questions that end the session are a fail
 - Orchestrator or kit workflow terminates mid-session without completing all generation — single-session completion rule violated
+- Generated agents use plain-text questions instead of `vscode_askQuestions` for clarification — all structured clarification must use `vscode_askQuestions` to keep the session alive
 - Roles overlap heavily without adding quality
 - Apple assumptions vague or inconsistent
 - Generated agents assume kit fallback defaults (e.g., Swift 6, strict concurrency, SwiftUI-first) when the project's actual technology profile differs
@@ -67,6 +74,33 @@ Fail when any critical defect exists:
 - `copilot-instructions.md` missing or not updated: target project must have a workspace-level instruction file that integrates with the generated agent ecosystem; when the target project already had one, existing relevant content must be preserved
 - `copilot-instructions.md` content duplicates `<prefix>-project-context.instructions.md` instead of being a concise overview with cross-references
 - Linting tools handled via hooks when instructions + agent validation steps would be more effective — validate against `hook-checklist.md`
+- Harness engineering principles missing: generated agents do not distinguish feedforward (guides) from feedback (sensors) controls, or do not leverage existing computational sensors (linters, type checkers, tests) in verify-fix loops
+- Investigator output is narrative prose instead of a structured repository impact map with real file paths, symbol names, and dependency-ordered change groups
+- Orchestrator lacks planning lane for complex tasks: no decomposition strategy, no plan persistence, no chunked execution with intermediate validation for tasks exceeding complexity threshold (>10 files, >3 modules, migration scope)
+- Generated agents lack context persistence guidance: no session memory usage for investigation findings, no `manage_todo_list` for progress tracking, no context compaction strategy for long tasks
+- Agent legibility violated: inter-agent outputs use narrative prose instead of structured tables/lists optimized for downstream agent consumption
+- Bundle evolution guidance missing steering loop concept: does not instruct teams to improve the harness (instructions, linter rules, conventions) when issues recur, only fixes individual outputs
+- Entropy management absent from orchestrator: no guidance for detecting pattern degradation, drift, or recurring failures across tasks
+- **Constitution missing**: no `<prefix>-constitution.md` instruction file with governance rules and Phase -1 gates
+- **Constitution generic**: constitution articles do not reference actual project conventions — contains placeholder/boilerplate text
+- **Constitution not acknowledged**: generated agents do not reference or acknowledge the constitution as highest-authority document
+- **Spec pipeline missing**: no refine-user-input, specify-feature, plan-implementation, or generate-tasks skills
+- **Spec pipeline not wired**: orchestrator does not activate spec pipeline for non-trivial features (>3 files, cross-module, business logic)
+- **Review pipeline missing separated review**: bundle uses combined Code Reviewer instead of the required separated pipeline (Code Review Orchestrator + Functional + Technical + Platform)
+- **Review short-circuit missing**: separated review pipeline does not implement Functional Reviewer BLOCKER → immediate REJECT before Technical/Platform review
+- **Handoffs missing**: agents that delegate to other agents do not declare `handoffs:` in YAML frontmatter
+- **Handoffs incomplete**: handoffs array missing agents that the delegator actually routes to
+- **Evidence standard missing**: generated agents do not define or enforce evidence labels (`[ASSUMPTION]`, `[NEEDS CLARIFICATION]`)
+- **Evidence standard inconsistent**: some agents enforce evidence labels while others ignore them; constitution Article II (if present) not aligned with agent behavior
+- **Runtime docs missing**: no user playbook or review playbook
+- **Runtime docs generic**: playbooks reference placeholder agent names instead of actual generated agent names
+- **Bundle incomplete**: missing expected artifacts from the Full Kit standard (constitution, spec pipeline, separated review, runtime docs, review memory promotion)
+- **Drift detection missing** from bundle evolution guidance: project context instruction does not include drift awareness signals or detection triggers
+- **Review memory promotion missing**: no guidance for promoting recurring review findings into durable prevention rules
+- **Hooks not generated** when qualifying tools detected: SwiftFormat/SwiftLint present but no hook generated or no explicit skip rationale
+- **Generated file marker missing or misplaced**: generated files do not include `<!-- Generated by Apple Agent Builder Kit -->` immediately after the YAML frontmatter closing `---`, or marker is placed before frontmatter (which breaks YAML parsing)
+- **Cross-session persistence missing**: generated orchestrator lacks guidance for persisting progress across sessions for large tasks (repo memory, persistent project files, progress summary format)
+- **Community skill discovery available but not integrated**: analyzer reported community skill discovery results (MCP GitHub was available and matching skills were found), but generator did not embed extracted knowledge in relevant agents or include recommendations in user playbook
 
 ## Audit Dimensions
 
@@ -77,7 +111,7 @@ Descriptions concrete, keyword-rich, role-specific? Users naturally phrase reque
 Conductor/specialist split justified? Primitive mix comprehensive and coherent? Apple role families add value?
 
 ### 3. Execution Quality
-Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification with options plus continuation defaults? Shared business knowledge stored in the right primitive and explicitly consumed by the agents that need it?
+Constraints explicit? Output contracts clear? Workflow says when to ask, act, validate, revise? Supporting artifacts present and effective? Behavioral patterns role-appropriate per SKILL.md? Collaboration lanes defined with hand-offs and iteration loops? Repo-grounded validation commands cited when available? Orchestrator defines micro-change handling, skip rules, reviewer conflict resolution, and non-blocking clarification via `vscode_askQuestions` with options plus continuation defaults? Orchestrator includes planning lane for complex tasks (decomposition, plan persistence, chunked execution)? Context persistence strategy present (session memory, todo list, context compaction)? Shared business knowledge stored in the right primitive and explicitly consumed by the agents that need it? Harness engineering alignment: feedforward/feedback controls distinguished, investigation output is structured impact map, inter-agent outputs optimized for agent legibility?
 
 ### 4. Apple Specificity And Technology Alignment
 Platforms, frameworks, concurrency, testing, accessibility, localization, capabilities, and lifecycle explicit? Generated agents aligned to the project's actual technology profile and Apple domain evidence from the analyzer (not kit fallback defaults)? If the project uses an older Swift version, less strict concurrency, UIKit-primary architecture, or project-specific platform capabilities, do the generated agents reflect that accurately instead of assuming latest defaults?

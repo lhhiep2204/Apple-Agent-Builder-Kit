@@ -79,6 +79,6 @@ All flows use the same user-facing phases defined in SKILL.md:
 
 Internal setup (reading skill files, loading templates) stays inside these phases, not as extra top-level steps. Phase 3 auto-skips when analysis provides enough confidence.
 
-When Phase 3 is required, prefer non-blocking clarification: ask with options, provide a recommended default, and continue on a provisional path when risk is low.
+When Phase 3 is required, prefer non-blocking clarification: use `vscode_askQuestions` to ask with options, provide a recommended default, and continue on a provisional path when risk is low. Never write questions as plain response text — `vscode_askQuestions` keeps the session alive.
 
 During generation, keep tool access broad by default: generated agents should not declare frontmatter `tools` or `mcp-servers` unless the user explicitly requests constrained tool access.

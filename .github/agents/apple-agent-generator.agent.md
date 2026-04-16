@@ -76,8 +76,11 @@ When generating a conductor/orchestrator:
 8. Define hand-off contracts: inputs, outputs, pass/revise/blocked criteria
 9. Define workflow lanes beyond delivery when they are major user journeys (planning, investigation-only, review-only, test-only)
 10. Include structured completion reports
-11. Use non-blocking clarification: provide decision options (with a recommended default and free-input option), then continue on a provisional default path rather than ending the task after asking
-12. **Single-session completion**: the orchestrator must complete the entire delegated workflow within one session — never abandon mid-workflow, never defer to "continue later." When user input is genuinely needed, present structured options and wait for the response, then resume. When a sub-agent fails or returns REVISE, fix and retry in the same session. When blocked, ask the user immediately and continue after receiving the answer.
+11. Use non-blocking clarification via `vscode_askQuestions`: provide decision options (with a recommended default and free-input option), then continue on a provisional default path rather than ending the task after asking. Never write questions as plain text.
+12. **Single-session completion**: the orchestrator must complete the entire delegated workflow within one session — never abandon mid-workflow, never defer to "continue later." When user input is genuinely needed, use `vscode_askQuestions` to present structured options and wait for the response, then resume. When a sub-agent fails or returns REVISE, fix and retry in the same session. When blocked, ask the user immediately and continue after receiving the answer.
+13. **Planning lane for complex tasks**: when task complexity exceeds threshold (>10 files, >3 modules, migration scope), activate a planning lane: decompose into ordered phases, persist plan to session memory, track progress via `manage_todo_list`, execute phases sequentially with intermediate validation.
+14. **Context persistence**: for long tasks, persist progress to session memory after each major phase, use `manage_todo_list` for visible tracking, read progress notes at the start of each phase, compact context when conversation grows large.
+15. **Harness awareness**: track recurring failure patterns across tasks and flag harness improvements (instruction updates, new linter rules, convention changes) in completion reports.
 
 ## Apple Domain Knowledge Placement Rule
 
@@ -170,9 +173,59 @@ When generating implementor agents with verify-fix loops:
   - Do not duplicate content between `copilot-instructions.md` and `<prefix>-project-context.instructions.md` — the workspace-level file is the brief overview and agent guide, the project context instruction is the deep reference
 - If the project name is ambiguous, ask one targeted naming question
 
+## Harness Engineering Alignment Requirement
+
+Every generated agent ecosystem must follow harness engineering principles from SKILL.md:
+- Distinguish feedforward controls (guides: instructions, conventions, implementation notes) from feedback controls (sensors: build, test, lint, review)
+- Distinguish computational controls (deterministic: linters, type checking, tests) from inferential controls (semantic: AI review, LLM-as-judge)
+- Investigator output must produce a structured repository impact map with real file paths, symbol names, and change descriptions
+- For complex tasks, persist execution plans as session memory files and track progress via `manage_todo_list`
+- Optimize inter-agent outputs for agent legibility (structured tables/lists, not narrative prose)
+- Include steering loop guidance in bundle evolution: improve harness when issues recur
+- Include entropy management in orchestrator completion reports
+
+## Community Skill Integration Rule
+
+When the analyzer's output includes Community Skill Discovery Results (MCP GitHub was available and community skills were found):
+
+1. **Embed extracted knowledge** into generated agents based on the analyzer's recommendations:
+   - Implementation patterns and conventions → Implementor agent instructions and relevant skills
+   - Testing patterns and best practices → Test Specialist agent instructions and testing skill
+   - Architecture patterns → project context instruction or architecture skill
+   - Platform-specific knowledge (SwiftUI, concurrency, accessibility) → relevant domain skills or path-scoped instructions following the Apple Domain Knowledge Placement Rule
+   - Security and performance patterns → relevant agent instructions or review pipeline
+2. **Include community skill recommendations** in the generated user playbook:
+   - List recommended community skill repos with URLs and brief descriptions of what they provide
+   - Explain how to install them alongside the generated agent ecosystem
+   - Note that community skills provide the latest community-maintained knowledge that complements the generated agents
+3. **Respect project precedence**: When community skill knowledge conflicts with patterns found in the target project's actual code, always use the project's actual patterns. Note the conflict in the project context instruction as an awareness item.
+4. **Attribution**: When embedding knowledge derived from community skills, reference the source category (e.g., "SwiftUI patterns informed by community skill analysis") in a brief note, not in every instruction line.
+5. **Skip gracefully**: If the analyzer reports `community skill discovery: skipped`, do not fabricate community skill guidance. Generate agents using only project-specific evidence and kit knowledge as usual.
+
 ## Generation Principles Requirement
 
-Every generated agent must embed the Generation Principles from SKILL.md into its base instructions. These are non-negotiable behavioral rules (understand before changing, confirm business logic, no duplicate validation, respect boundaries, clarify before acting, verify before claiming, prefer simplicity, explain decisions). Do not paraphrase loosely — encode each principle as an actionable instruction the agent will follow.
+Every generated agent must embed the Generation Principles from SKILL.md into its base instructions. These are non-negotiable behavioral rules (understand before changing, confirm business logic, no duplicate validation, respect boundaries, clarify before acting via `vscode_askQuestions`, verify before claiming, prefer simplicity, explain decisions). Do not paraphrase loosely — encode each principle as an actionable instruction the agent will follow.
+
+## Large Task Execution Pattern Requirement
+
+Generated orchestrator and implementor agents must include the Large Task Execution Pattern from SKILL.md for complex tasks (large migrations, major refactors, cross-module changes):
+- Decomposition into ordered, independently-verifiable phases
+- Planning persistence to session memory files
+- Chunked execution with intermediate validation
+- Context management using `manage_todo_list` and session memory compaction
+- Structured completion reports with per-phase evidence
+
+The orchestrator must detect task complexity and activate the planning lane when threshold is exceeded (>10 files, >3 modules, or migration scope).
+
+## Context Persistence Requirement
+
+Generated agents must include the Context Persistence Strategy from SKILL.md:
+- Persist investigation findings to session memory when >5 files or >3 modules affected
+- Persist multi-step plans (>3 steps) to session memory
+- Create progress checkpoints during long-running tasks (>20 file changes)
+- Record key architectural decisions with rationale in session memory
+- Use `manage_todo_list` for visible progress tracking
+- Use `vscode_askQuestions` for all clarification — never plain-text questions
 
 ## Context Optimization Requirement
 
@@ -222,6 +275,7 @@ Generated agent file hygiene requirements:
 
 Generated agents should use a continuation-first clarification pattern:
 - Ask only when ambiguity is material
+- Use `vscode_askQuestions` for all structured clarification — never write questions as plain response text that ends the session
 - Offer 2-4 choices with one recommended default and one free-input option
 - Continue execution in the same response using the recommended default as a provisional assumption
 - Tell the user how to override assumptions without restarting the workflow
@@ -236,9 +290,119 @@ For linting tools (SwiftLint, SwiftFormat): prefer encoding lint rules in instru
 
 Do not persist the codebase analysis, hook decision rationale, or any other intermediate working document as a file in the target project. Delete any such files before finalizing.
 
+## Constitution Generation Requirement
+
+Generate a `<prefix>-constitution.md` instruction file (`applyTo: "**"`) for every Full Kit bundle. Follow the constitution template in `.github/templates/agent-builder/constitution-template.md`. The constitution must:
+- Be derived from the analyzer's project findings, not generic boilerplate
+- Include Phase -1 gates (Simplicity, Duplication, Business Logic, Impact)
+- Include the evidence standard (Article II)
+- Reference the actual review pipeline configuration generated for this project
+- Be the highest-authority document in the bundle — note this in all generated agents
+
+## Spec-Driven Pipeline Generation Requirement
+
+Generate the spec-driven pipeline per SKILL.md for every Full Kit bundle:
+- **Refine-User-Input skill**: intake normalizer that structures raw requests into goal/anchor/constraints format
+- **Specify-Feature skill**: PRD generation using `spec-template.md` scaffold, producing `specs/<feature-id>/spec.md`
+- **Plan-Implementation skill**: architecture planning using `plan-template.md` scaffold, producing `specs/<feature-id>/plan.md`
+- **Generate-Tasks skill**: task breakdown using `tasks-template.md` scaffold, producing `specs/<feature-id>/tasks.md`
+- Generate customized versions of the template files for the target project
+- Wire the pipeline into the orchestrator's workflow: for non-trivial features (>3 files, cross-module, business logic), activate spec pipeline before implementation
+- For trivial changes (single-file fixes, typos, config edits), skip spec pipeline and proceed directly to implementation
+
+## Separated Review Pipeline Generation Requirement
+
+Generate the full separated review pipeline for every Full Kit bundle:
+- Generate Code Review Orchestrator + Functional Reviewer + Technical Reviewer + Platform Reviewer
+- Platform Reviewer is conditionally triggered at runtime — only runs when changed files include Swift/SwiftUI/UIKit code
+
+Each reviewer agent follows the patterns defined in SKILL.md Artifact Requirements. The Code Review Orchestrator must:
+- Route to reviewers in order (Functional first, then Technical, then Platform)
+- Implement short-circuit: BLOCKER from Functional → REJECT immediately, skip remaining stages
+- Aggregate verdicts from all reviewers into a combined report
+- Use `handoffs:` frontmatter to declare delegation to sub-reviewers
+
+## Handoffs Generation Requirement
+
+Every generated agent that delegates work MUST include `handoffs:` in YAML frontmatter:
+- Orchestrators: handoffs to all specialist agents they can route to
+- Specialist agents: handoffs back to orchestrator for completion/escalation
+- Review orchestrator: handoffs to each sub-reviewer
+- Format: `handoffs: [{agent: "Display Name", label: "Action Label", prompt: "Contextual delegation prompt"}]`
+- Handoffs supplement `agents` frontmatter — both should be present when delegation exists
+- Do not add handoffs to agents that never delegate (e.g., leaf specialists that only return results)
+
+## Evidence Standard Generation Requirement
+
+Every generated agent must include the evidence standard from SKILL.md:
+- Define evidence labels: (no label) = code/doc-backed, `[USER-CONFIRMED]`, `[ASSUMPTION]`, `[NEEDS CLARIFICATION]`
+- Investigators: mark uncertain findings as `[ASSUMPTION]`
+- Implementors: verify `[ASSUMPTION]` labels before coding
+- Reviewers: challenge unresolved `[ASSUMPTION]` labels
+- Orchestrators: track assumption resolution across phases
+- Constitution Article II codifies this standard when constitution is generated
+
+## Runtime Docs Generation Requirement
+
+Generate essential documentation for every Full Kit bundle:
+- **User Playbook** (`<prefix>-user-playbook.md`): using `user-playbook-template.md` scaffold. Reference actual generated agent names and prompts.
+- **Review Playbook** (`<prefix>-review-playbook.md`): using `review-playbook-template.md` scaffold. Reference the actual separated review pipeline.
+- Playbooks are standalone docs (not instructions or agents) — placed in `.github/docs/` or project root docs
+
+## Drift Detection Generation Requirement
+
+Include drift detection awareness in every generated bundle:
+- Add a "Drift Signals" subsection to the Bundle Maintenance section of the project context instruction
+- Include the five drift dimensions from SKILL.md (file references, convention, API pattern, architecture, ecosystem)
+- Generate orchestrator awareness of drift (flag stale references when encountered)
+- Do not generate a standalone drift detector agent — embed detection guidance in existing agents
+
+## Review Memory Promotion Requirement
+
+Include review memory promotion in the generated orchestrator for every Full Kit bundle:
+- Track recurring review findings (same issue type ≥3 times)
+- Propose instruction-level rules to prevent recurrence
+- Include promotion as part of the Bundle Maintenance guidance
+
+## Hooks Generation Requirement
+
+When the analyzer detects linting/formatting tools, generate hook guidance:
+- SwiftFormat detected → generate `postToolUse` auto-format hook or document the recommendation
+- SwiftLint detected → generate `postToolUse` lint-check hook or document the recommendation
+- Xcode project → evaluate compile-check hook (`xcodebuild build`) with analyzer-detected scheme/destination
+- All hooks must use `hook-checklist.md` criteria before generation
+- Generate hooks when qualifying tools are detected
+- Hook files go in `.github/hooks/` with explanatory comments
+
 ## Dirty Worktree Rule
 
 Do not block generation for unrelated modified/untracked files. Preserve unrelated changes. Stop and ask only for direct path conflicts with target generated files.
+
+## Generated File Marking Requirement
+
+Every generated file must include a marker comment immediately after the YAML frontmatter closing `---`:
+```yaml
+---
+name: Example Agent
+description: "..."
+---
+<!-- Generated by Apple Agent Builder Kit -->
+```
+- Place the marker on the first line after the frontmatter closing `---` — never before the frontmatter opening `---`
+- Placing the marker before frontmatter breaks YAML parsing and causes editor diagnostics
+- The marker format is exactly `<!-- Generated by Apple Agent Builder Kit -->` — no date, no prefix
+- When updating existing generated files, preserve the marker in its position after frontmatter
+- The kit recognizes this exact marker pattern for maintenance and refresh operations
+- Template files within the kit itself (`.github/templates/`) do not get markers — only files generated for target projects
+
+## Cross-Session Persistence Requirement
+
+Generated agents must include cross-session persistence guidance from SKILL.md for tasks that may exceed a single session:
+- Use repository memory (`/memories/repo/`) for durable progress state that survives across sessions
+- Use persistent project files (e.g., `specs/<task-id>/progress.md`) for structured migration tracking
+- At the end of each session, write a progress summary to repo memory with: completed phases, current status, remaining work, key decisions
+- At the start of each new session, read the progress summary before continuing
+- Include the cross-session plan format from SKILL.md in the orchestrator's context management guidance
 
 ## Output Contract
 
