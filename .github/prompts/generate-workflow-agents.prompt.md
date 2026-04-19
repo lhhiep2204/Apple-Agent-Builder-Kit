@@ -27,6 +27,8 @@ Complete the entire workflow through delivery in this session. When user input i
 
 ## Target Roles
 
+Reference roles — full behavioral specifications per role in SKILL.md Artifact Requirements section.
+
 | Role | Responsibility |
 |------|---------------|
 | Business Analyst | User stories, acceptance criteria, domain rules, edge cases |
@@ -55,30 +57,9 @@ Final quality expectation: zero open findings (including minor) and zero editor 
 
 ## Constraints
 
-- Every agent must reference real project conventions, not generic boilerplate
+- Reference real project conventions, not generic boilerplate
 - Project-derived file prefix for generated artifacts
-- Full workflow kit includes supporting skills, instructions, prompts, templates per SKILL.md bundle shapes
-- Shared business knowledge must be stored in the lightest effective primitive; do not always create a registry/skill and do not leave business-heavy projects with only scattered agent prose
-- Bidirectional cross-references between agents and skills; delete intermediate files before finalizing
-- Orchestrator defines: business analysis → investigate → implement → test → review sequence
-- Orchestrator clarification is non-blocking: use `vscode_askQuestions` to offer options with a recommended default and continue provisionally. Never write plain-text questions.
-- Separated review pipeline for all Full Kit bundles (Code Review Orchestrator + Functional + Technical + Platform)
 - For established projects: preserve working behavior while fixing weak areas
-- Skip full 95% confidence interview — rely on analysis first
-- Generated agents do not declare frontmatter `tools` or `mcp-servers` unless explicitly requested — this keeps all tools including MCP servers accessible
-- Generated agents that interact with external services (issue trackers, project management, CI/CD) MUST include explicit instructions to prefer MCP tools over URL fetching
-- `agents` frontmatter MUST use inline JSON-style array with exact display names: `agents: ["Name A", "Name B"]` — NEVER block list syntax, NEVER filenames
-- `description` frontmatter MUST be a double-quoted string with trigger phrases
-- All generated files in the same bundle MUST use consistent YAML formatting
-- Generated agents MUST use `vscode_askQuestions` for all clarification — never plain-text questions
-- Generated orchestrator MUST include planning lane for complex tasks per SKILL.md Large Task Execution Pattern
-- Generated agents MUST include context persistence strategy: session memory for investigation/plans, `manage_todo_list` for progress tracking
-- Generated agents MUST follow harness engineering principles: feedforward/feedback controls, structured impact maps, agent legibility, steering loop, entropy management
-- Generated agents that delegate MUST declare `handoffs:` in YAML frontmatter with agent, label, and prompt
-- Generated agents MUST enforce evidence standard: `[ASSUMPTION]` / `[NEEDS CLARIFICATION]` labeling
-- Constitution required with Phase -1 gates
-- Spec-driven pipeline required (activated for non-trivial features; skipped for trivial changes)
-- Runtime docs (user playbook, review playbook) required
-- Review memory promotion guidance required in orchestrator
-- Hooks generated when qualifying tools (SwiftFormat, SwiftLint) are detected
-- When MCP GitHub is available, community skill knowledge from `twostraws/Swift-Agent-Skills` is embedded in generated agents and recommended in user playbook
+- Skip 95% confidence interview — rely on analysis first
+- Follow all bundle requirements and artifact patterns in SKILL.md — the generator's SKILL.md Compliance Checklist is the verification surface
+- Complete the entire workflow in a single session — never abandon mid-generation

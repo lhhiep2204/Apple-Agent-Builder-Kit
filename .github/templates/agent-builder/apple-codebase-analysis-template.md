@@ -292,29 +292,39 @@ Content to include in the project's `<prefix>-project-context.instructions.md`:
 
 ## Community Skill Discovery Results
 
-- discovery status: <available — MCP GitHub used | skipped — MCP GitHub not available>
+- discovery method: <MCP live + registry | web fetch + registry | registry only>
+- registry snapshot date: <date from community-skill-registry.md metadata>
 - source repository: twostraws/Swift-Agent-Skills
 
 ### Matched Categories
 
-| Category | Project signal | Matching skills found | Relevance |
-|----------|---------------|----------------------|-----------|
-| <category e.g. SwiftUI> | <tech alignment evidence> | <count> | <high / moderate / low> |
+| Category | Project signal | Matching skills found | Relevance | Deep-crawl status |
+|----------|---------------|----------------------|-----------|-------------------|
+| <category e.g. SwiftUI> | <tech alignment evidence> | <count> | <high / moderate / low> | <content read / unreachable / skipped — registry only> |
 
 ### Extracted Domain Knowledge
 
-| Skill repo | Category | Key knowledge extracted | Recommended usage |
-|------------|----------|------------------------|-------------------|
-| <repo URL> | <category> | <actionable patterns, best practices, anti-patterns> | <embed in: implementor/test specialist/etc. + recommend install> |
+| Skill repo | Category | Content file read | Key knowledge extracted | Cross-reference with project |
+|------------|----------|-------------------|------------------------|------------------------------|
+| <repo URL> | <category> | <yes — path / no — used registry summary> | <specific patterns, rules, anti-patterns, deprecated API warnings, edge cases — not just summaries> | <aligns with / conflicts with / supplements project pattern X> |
 
-### Generator Recommendations
+### Generator Recommendations (Per Agent Role)
 
-- knowledge to embed in generated agents:
-  - <agent role>: <specific knowledge from community skills>
-- community skills to recommend users install:
-  - <skill name> (<repo URL>) — <why relevant to this project>
+- knowledge to embed in generated agents (specific rules per role):
+  - <Implementor>: <specific patterns from SwiftUI, concurrency, architecture skills>
+  - <Test Specialist>: <specific patterns from Swift Testing, SwiftUI testing skills>
+  - <Platform Reviewer>: <specific patterns from concurrency, SwiftUI performance, accessibility skills>
+  - <Technical Reviewer>: <specific patterns from security, architecture skills>
+  - <other roles as applicable>: <specific knowledge>
+- community skills to recommend users install (ALL matching, grouped by category):
+  - SwiftUI: <skill name> (<repo URL>) — <why relevant>
+  - Concurrency: <skill name> (<repo URL>) — <why relevant>
+  - Testing: <skill name> (<repo URL>) — <why relevant>
+  - <other categories>: <skills>
 - knowledge conflicts with project patterns (project patterns take precedence):
-  - <conflict description, if any>
+  - <conflict description with specific file reference, if any>
+- matched categories with no knowledge embedded (intentionally skipped):
+  - <category>: <reason for skipping, e.g. "thin signal in project" or "no actionable content beyond what LLMs already know">
 
 ## Recommended Role Families
 

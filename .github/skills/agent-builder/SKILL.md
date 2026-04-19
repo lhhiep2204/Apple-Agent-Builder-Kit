@@ -5,7 +5,12 @@ description: "Use when: creating, refactoring, auditing, upgrading, or debugging
 
 # Agent Builder
 
-Primary consumer: `Agent Builder` in `.github/agents/agent-builder.agent.md`.
+Consumers:
+- `Agent Builder` in `.github/agents/agent-builder.agent.md` (conductor)
+- `Apple Agent Generator` in `.github/agents/apple-agent-generator.agent.md` (artifact requirements, bundle shapes)
+- `Apple Quality Auditor` in `.github/agents/apple-quality-auditor.agent.md` (audit standard, minimums)
+- `Apple Codebase Analyzer` in `.github/agents/apple-codebase-analyzer.agent.md` (analysis template, workflow signals)
+- `.github/instructions/agent-builder.instructions.md` (generation quality standards, file editing rules)
 
 Use this skill to design and generate high-quality Copilot customization bundles for Apple platform projects. This is the single source of truth for the complete kit workflow, bundle shapes, and artifact behavioral requirements.
 
@@ -25,9 +30,29 @@ iOS, iPadOS, macOS, visionOS, watchOS, and tvOS.
 
 **Alignment rule**: The analyzer's codebase findings always override these fallback defaults. If the project uses Swift 5.9, actor isolation only where explicitly adopted, UIKit-primary architecture, or XCTest without Swift Testing — generated agents must align to the project's actual technology profile, not the latest available.
 
+## Operating Modes
+
+**Discovery Mode** — requirements incomplete, overloaded, or inconsistent. Run adaptive interview until target workflow, scope, and quality bar are clear. Offer 2-3 architecture options when tradeoffs matter. Continue until confidence ≥ 95%.
+
+**Fast Mode** — user has clear target and constraints. Confirm only missing facts that change the design. Move quickly into analysis → generation → auditing.
+
+## Three Operating Flows
+
+### Flow A: Greenfield — No agents exist
+1. Clarify → 2. Analyze project → 3. Generate full bundle → 4. Audit → 5. Revise until PASS
+
+### Flow B: Verify and Improve — Agents already exist
+Triggered during Flow A when existing agents are detected, or invoked directly via `/generate-workflow-agents` when user wants to verify and improve an existing ecosystem.
+1. Scan ecosystem → 2. Evaluate each agent → 3. Fix weak agents, fill gaps → 4. Audit → 5. Revise until PASS
+
+### Flow C: Extend or Verify — Add new agent, or verify an existing one
+Triggered via `/add-agent` prompt:
+- **Extend (create)**: Clarify new workflow → Analyze project + existing agents → Generate new agent (no overlap) → Audit (ecosystem coherence) → Revise until PASS
+- **Verify (single agent)**: Collect target files → Analyze ecosystem context → Evaluate against audit rubric → Fix findings → Re-audit until PASS
+
 ## Default Behavior
 
-- Discovery Mode when unclear inputs could change architecture; Fast Mode when goals are explicit
+- Operating mode selection: see Operating Modes above
 - If the user chooses the wrong primitive, offer 2-3 better options
 - Generate files in English by default
 - Prefer portable designs unless the user asks for repo-locked behavior
@@ -44,13 +69,12 @@ iOS, iPadOS, macOS, visionOS, watchOS, and tvOS.
 The entire bundle must be generated within a single continuous session. Never abandon the workflow or leave generation incomplete.
 
 - **Start to finish in one session**: Once generation begins, continue through analyze → generate → audit → revise → deliver without stopping.
-- **Interactive clarification when blocked**: When user input is genuinely needed (high-risk ambiguity that would materially change the bundle), use `vscode_askQuestions` to present a structured question with 2-4 options and a recommended default. This tool keeps the session alive — never write questions as plain text that ends the response. Wait for the user's response, then resume processing immediately.
-- **Low-risk ambiguity**: Continue with an explicit provisional assumption. State the assumption so the user can override.
-- **Never abandon**: Do not end a response mid-workflow claiming "we can continue later" or "let me know when you're ready." If blocked on user input, ask the question and explicitly commit to continuing after receiving the answer.
-- **Audit failures are not session-enders**: When the auditor returns `REVISE`, fix every finding and re-audit in the same session. When `BLOCKED`, ask the missing questions immediately, wait for answers, then resume.
-- **Error recovery**: If a tool fails or an approach is blocked, try alternatives within the same session. Escalate to the user only when no automated recovery is possible.
+- **Structured clarification**: When user input is genuinely needed, use `vscode_askQuestions` with 2-4 options and a recommended default. This keeps the session alive. Never write questions as plain response text — that ends the session. For low-risk ambiguity, continue with an explicit provisional assumption.
+- **Audit failures**: When the auditor returns `REVISE`, fix every finding and re-audit in the same session. When `BLOCKED`, ask the missing questions immediately, wait for answers, then resume.
+- **Error recovery**: If a tool fails, try alternatives within the same session. Escalate to the user only when no automated recovery is possible.
+- **Completion behavior**: After finishing all tasks, use `vscode_askQuestions` to ask the user whether additional updates are needed. Do not self-terminate — only end the session when the user explicitly decides to stop.
 
-This rule applies to the kit itself (Agent Builder generating bundles) and to generated orchestrator agents (which must also complete delegated workflows in one session).
+This rule applies to the kit itself and to generated orchestrator agents.
 
 ## Workflow
 
@@ -69,33 +93,39 @@ Internal setup work (reading skill files, loading templates, scanning existing f
 
 The kit maintains one persistent reference file that the generator reads directly during generation:
 
-- `.github/templates/agent-builder/kit-doc-refresh.md` — Copilot product behavior: frontmatter rules, primitives, tool behavior, hook behavior, instruction precedence. Updated by `Apple Copilot Docs Refresher` during kit maintenance.
+- `.github/templates/agent-builder/copilot-docs-registry.md` — Copilot product behavior: frontmatter rules, primitives, tool behavior, hook behavior, instruction precedence. Updated by `Apple Copilot Docs Refresher` during kit maintenance.
 
 Apple platform domain knowledge is not maintained as a separate snapshot. It must come from the target project's codebase analysis: source files, project config, tests, resources, entitlements, and migration signals. When project signal is thin, use cautious fallback assumptions and mark them explicitly.
 
 The docs snapshot is an authoritative generator input. It does not need to be fetched each run — the kit owner updates it periodically using the refresher agent during kit maintenance sessions.
 
-### Community Skill Discovery (Runtime, MCP Conditional)
+### Community Skill Discovery (Registry-Backed, MCP-Enriched)
 
-During the analysis phase, when MCP GitHub tools are available, the analyzer reads the community skill directory at `twostraws/Swift-Agent-Skills` to discover relevant domain knowledge for the target project's tech stack.
+During the analysis phase, the analyzer discovers community agent skills relevant to the target project's tech stack using a two-layer approach: a persistent registry snapshot as baseline, enriched with live data when MCP GitHub is available.
 
-- **Trigger**: MCP GitHub tools accessible at runtime (e.g., `mcp_github_get_file_contents`)
+#### Kit Reference File
+
+- `.github/templates/agent-builder/community-skill-registry.md` — Persistent snapshot of the `twostraws/Swift-Agent-Skills` directory with all categories, skill repos, content file paths, match criteria, and extracted knowledge summaries. Updated by `Apple Copilot Docs Refresher` during kit maintenance. The analyzer reads this as a reliable baseline that is always available regardless of MCP access.
+
+#### Runtime Behavior
+
 - **Timing**: After the analyzer determines the Technology Alignment Profile, as part of the analysis phase
-- **Process**: Read the directory README, match categories to project tech stack, follow links to individual skill repos for matching categories, extract actionable domain knowledge
-- **Output**: Community Skill Discovery Results section in the analysis output — matched categories, extracted knowledge, and recommendations for the generator
-- **Generator consumption**: Embed core knowledge in generated agents + recommend users install community skills for latest updates
-- **Precedence**: Project-specific code patterns always override community skill guidance when they conflict
-- **Graceful skip**: When MCP GitHub is not available, the analyzer notes the skip and generation proceeds using only project evidence and kit knowledge — no degradation in core functionality
+- **Baseline**: Always read `community-skill-registry.md` first — this provides the full category listing and pre-extracted knowledge
+- **Fallback chain**: MCP live + registry (best) → web fetch + registry (good) → registry only (acceptable). Never skip community skills entirely — the registry snapshot ensures baseline coverage.
+- **Deep crawl**: When MCP GitHub is available, the analyzer must read the actual SKILL.md content files from each matching sub-repo (not just the directory README). This extracts specific patterns, anti-patterns, deprecated API warnings, and edge cases — the highest-value content that LLMs commonly get wrong.
+- **Output**: Community Skill Discovery Results section in the analysis output — discovery method, registry snapshot date, matched categories, deep-crawl status, extracted knowledge per skill, cross-reference against project patterns, and per-agent-role recommendations for the generator
+- **Generator consumption**: Embed specific knowledge (patterns, rules, anti-patterns) in generated agents for matching tech stack areas + recommend users install community skills for latest updates
+- **Precedence**: Project-specific code patterns always override community skill guidance when they conflict. Conflicts must be noted explicitly.
+- **Staleness management**: The registry snapshot is refreshed during kit maintenance. At generation time, if the snapshot is >30 days old, the analyzer notes the staleness so the user can decide whether to refresh before a major generation run.
 
 ### 1. Clarify the Outcome
 
 Collect only facts that materially change architecture: target users, tasks, inputs/outputs, domain, autonomy level, tool restrictions, quality bar, Apple platforms, framework constraints, delivery roles.
 
 Clarification protocol:
-- **Low-risk ambiguity**: Continue with an explicit provisional assumption. State it clearly so the user can override.
-- **High-risk ambiguity** (would materially change architecture): Use `vscode_askQuestions` to present a structured choice block: 2-4 options, one recommended default, plus an "Other" free-input option. Wait for user response, then continue.
-- **Tool requirement**: Always use `vscode_askQuestions` for structured clarification — never write questions as plain response text. Plain-text questions end the session; `vscode_askQuestions` keeps it alive.
-- Never stop the workflow entirely after asking a question. Either continue provisionally (low-risk) or wait for the response and resume (high-risk).
+- **Low-risk ambiguity**: Continue with an explicit provisional assumption.
+- **High-risk ambiguity**: Use `vscode_askQuestions` per the Single-Session Completion Rule.
+- Never stop the workflow entirely after asking a question.
 
 ### 2. Model the Workflow
 
@@ -126,6 +156,10 @@ Use scaffold templates from `.github/templates/agent-builder/`:
 | instruction | `instruction-template.md` |
 | prompt | `prompt-template.md` |
 | workflow asset | `workflow-asset-template.md` |
+| constitution | `constitution-template.md` |
+| spec / plan / tasks | `spec-template.md`, `plan-template.md`, `tasks-template.md` |
+| user playbook | `user-playbook-template.md` |
+| review playbook | `review-playbook-template.md` |
 
 Pick roles from `apple-role-catalog.md`. Replace every `<...>` placeholder with project-grounded content.
 
@@ -172,14 +206,15 @@ Send to auditor. If `REVISE`, patch every finding (major and minor) and re-audit
 - `copilot-instructions.md` — workspace-level instructions (created or updated)
 - Project context instruction (`<prefix>-project-context.instructions.md`, `applyTo: "**"`) for detailed project facts
 - Constitution (`<prefix>-constitution.md`) — immutable governance rules and Phase -1 gates
-- Conductor + 4+ specialist agents (implementation, testing, review pipeline, investigation)
-- Review pipeline: Code Review orchestrator + Functional Reviewer + Technical Reviewer + Platform Reviewer (Apple-specific)
-- 3+ skills (delivery workflow + spec-driven pipeline + domain-specific)
-- 2+ instructions (implementation + testing)
+- Conductor + 9+ non-conductor agents (5 core delivery + 4 review pipeline)
+- 5+ skills (delivery workflow + spec pipeline + domain-specific)
+- 3+ instructions (implementation + testing + path-scoped)
 - 3+ prompts (primary delivery + spec entry + secondary)
 - 3+ templates for recurring hand-offs (including spec/plan/tasks)
-- Essential docs: user-playbook, review-playbook
+- 2 docs (user playbook + review playbook)
 - Explicit hook decision (SwiftLint/SwiftFormat auto-format, xcodebuild compile-check when warranted)
+- Handoffs in frontmatter for all delegating agents
+- Evidence standard embedded in agents + constitution
 - Drift detection guidance in bundle evolution section
 - Review memory promotion guidance in orchestrator
 
@@ -191,29 +226,24 @@ Every project receives the full bundle. Small projects benefit from the same age
 
 ### Agent
 - Mission, use-when, non-goals, decision rules, output contract
-- Collaboration model: inputs consumed, outputs produced, hand-off criteria, auto-return vs escalation conditions
-- **All agents**: structured clarification questions using `vscode_askQuestions` (what to ask, when to skip because the codebase answers), anti-patterns list, structured output contract, explicit MCP tool preference for external service access (issue trackers, project management, documentation platforms). Clarification must always use `vscode_askQuestions` — never plain-text questions that end the session. Evidence standard: every business-rule claim must be backed by code/doc evidence, user confirmation, or labeled `[ASSUMPTION]` / `[NEEDS CLARIFICATION]`.
-- **All agents with handoffs**: include `handoffs:` in YAML frontmatter for explicit delegation targets with label and prompt. Example: `handoffs: [{agent: "Test Specialist", label: "Generate Tests", prompt: "Generate tests for..."}]`. This replaces implicit delegation through prose instructions.
-- **Implementor**: pre-impl checklist (trace existing flow, confirm business rules, check duplication, scope affected files), code reasoning (explain business justification before writing each file), incremental implementation (verify data → business → API in chunks), verify-fix loop (build → targeted tests for touched feature/suites → lint, max 3 retries, stop and report). Verify-fix loop must treat lint warnings as failures when a linter is configured — use `--strict` or equivalent flag. Build/test commands must use the analyzer-detected simulator destination, never a hardcoded device model. Full test-suite runs are conditional, not default: run full suite only when risk is high (shared/core modules touched, broad dependency impact, release/CI gate, or explicit user request). For large tasks: follow the Large Task Execution Pattern (decompose → persist plan → chunked execution → intermediate validation → context management → completion). Phase -1 constitutional gates (simplicity, duplication, business logic, impact) must pass before implementation begins.
-- **Code Review Orchestrator**: orchestrates a multi-stage review pipeline with short-circuit on blockers. Delegates to Functional Reviewer, Technical Reviewer, and Platform Reviewer (Apple-specific) sub-agents. Stage 0: context gathering (full file content + dependency graph + callers). Stage 1: Functional Review — business logic correctness, AC traceability, edge cases. If functional BLOCKER found, REJECT immediately without proceeding to technical review. Stage 2: Technical Review — architecture, concurrency, performance, security, layer responsibility, migration safety. Stage 3 (conditional): Platform Review — Apple-specific checks (memory management, UI thread, SwiftUI recomposition, actor isolation, accessibility). Combined report with severity-driven verdicts.
-- **Functional Reviewer**: validates code changes exclusively from business correctness perspective. AC ↔ Test ↔ Code traceability mapping. Adversarial edge-case analysis. Cross-domain data integrity checks. Evidence standard: every claim backed by code/doc anchor, user confirmation, or labeled `[ASSUMPTION]`/`[NEEDS CLARIFICATION]`. Business context confidence level (High/Medium/Low). Short-circuit: any BLOCKER stops the review pipeline.
-- **Technical Reviewer**: validates code changes from technical quality perspective only. API backward compatibility checks. Database/migration safety analysis. Domain boundary violations (module boundaries, layer responsibility). NFR compliance (logging, error handling, external call protection). Performance review. Does NOT verify business requirements — that is the Functional Reviewer's job.
-- **Platform Reviewer (Apple-specific)**: validates Apple platform concerns not covered by generic technical review. Memory management (retain cycles, actor isolation). UI thread safety (MainActor boundaries, background task dispatching). SwiftUI recomposition analysis. Concurrency correctness (Sendable, task cancellation). Accessibility and localization completeness. Platform capability usage (entitlements, privacy). Triggered only when changed files include Swift/SwiftUI/UIKit code.
-- **Investigator**: structured as-is/to-be analysis with file and line references producing a **repository impact map**: concrete file list with change descriptions, real symbol names and existing patterns to follow, dependency-ordered change groups. To-be change table (component, change type, file, business reason), impact matrix with severity levels, scenario mapping. Output must be optimized for agent legibility — structured tables and lists, not narrative prose.
-- **Business-heavy bundles**: when a business domain registry, domain map, domain-scoped instructions, or business-domain skill exists, Business Analyst and Investigator maintain or refresh it; Implementor and Code Reviewer must consult it before changing or approving business logic; Dev Orchestrator includes it in hand-off requirements.
-- **Orchestrator**: intent-based auto-routing to sub-agents so users never manually pick agents, mandatory confirmation checkpoint between investigation and implementation, structured completion report, micro-change lane for low-risk edits, reviewer conflict resolution, inter-agent iteration loops (implement → test → review → back to implement until review passes)
-- **Orchestrator planning lane**: for complex tasks (large migrations, multi-module refactors, cross-cutting changes), the orchestrator must activate a planning lane before delegation: decompose the task into ordered phases, persist the plan to session memory, track progress via `manage_todo_list`, and execute phases sequentially with intermediate validation. The planning lane replaces the default direct-delegation path when task complexity exceeds the threshold (>10 files, >3 modules, or migration scope).
-- **Orchestrator single-session rule**: the orchestrator must complete the entire delegated workflow within one session. Never abandon mid-workflow. When user input is needed, use `vscode_askQuestions` to present structured options and wait for response, then resume. When a sub-agent fails or returns REVISE, fix and retry in the same session.
-- **Orchestrator clarification behavior**: never end the workflow after a clarification prompt alone; use `vscode_askQuestions` to provide a decision menu with recommended default, and continue execution on a provisional track until user override
-- **Orchestrator harness awareness**: the orchestrator should track recurring failure patterns across tasks and flag when the harness (instructions, conventions, linter rules) should be improved rather than just fixing individual outputs. Include a "harness improvement suggestions" section in completion reports when patterns are detected.
-- **Orchestrator context management**: for long tasks, the orchestrator must persist progress to session memory after each major phase, use `manage_todo_list` for visible tracking, and compact context when conversation grows large. Read progress notes at the start of each phase to re-ground.
+- Collaboration model: inputs consumed, outputs produced, hand-off criteria, auto-return vs escalation
+- **All agents**: use `vscode_askQuestions` for clarification (per Single-Session Completion Rule), anti-patterns list, structured output contract, explicit MCP tool preference for external services. Evidence standard: every business-rule claim backed by code/doc evidence, user confirmation, or labeled `[ASSUMPTION]` / `[NEEDS CLARIFICATION]`.
+- **All agents with handoffs**: `handoffs:` in YAML frontmatter with label and prompt for each delegation target.
+- **Implementor**: pre-impl checklist (trace flow, confirm rules, check duplication, scope files), incremental implementation (data → business → API), verify-fix loop (build → targeted tests → lint, max 3 retries). Lint `--strict` when configured. Use analyzer-detected simulator destination. Full test suite only when high-risk. Follow Large Task Execution Pattern for complex work. Phase -1 constitutional gates before implementation.
+- **Code Review Orchestrator**: multi-stage pipeline with short-circuit. Stage 0: context gathering. Stage 1: Functional Review (BLOCKER → REJECT immediately). Stage 2: Technical Review. Stage 3 (conditional): Platform Review (Apple-specific, only for Swift/SwiftUI/UIKit files). Combined severity-driven verdicts.
+- **Functional Reviewer**: business correctness only. AC ↔ Test ↔ Code traceability. Adversarial edge-case analysis. Evidence-backed findings with confidence level. BLOCKER stops pipeline.
+- **Technical Reviewer**: technical quality only. API compatibility, migration safety, domain boundaries, NFR compliance, performance. Does NOT verify business requirements.
+- **Platform Reviewer**: Apple-specific concerns. Memory management, UI thread safety, SwiftUI recomposition, concurrency correctness, accessibility, platform capabilities. Conditional trigger.
+- **Investigator**: structured as-is/to-be analysis producing a **repository impact map**: file list with changes, real symbol names, dependency-ordered groups, human confirmation checkpoint. Output optimized for agent legibility (tables/lists, not prose).
+- **Business-heavy bundles**: when business domain artifacts exist, BA/Investigator maintain them; Implementor/Reviewer consult before changing business logic.
+- **Orchestrator**: intent-based auto-routing, confirmation checkpoint between investigation and implementation, micro-change lane, reviewer conflict resolution, inter-agent iteration loops (implement → test → review → repeat). Planning lane for complex tasks (>10 files, >3 modules, or migration): decompose → persist plan → `manage_todo_list` → sequential execution. Harness awareness: track recurring failures, suggest harness improvements. Context management: persist progress per phase, compact when large. Single-session completion rule: never abandon mid-workflow, use `vscode_askQuestions` for clarification (per Single-Session Completion Rule including completion behavior).
 
 ### YAML Frontmatter Generation
 - `agents` field MUST use inline JSON-style array syntax with exact agent display names: `agents: ["Name A", "Name B"]` — NEVER use block list syntax (`- item`) and NEVER use filenames
 - `description` field MUST be a double-quoted string with concrete trigger phrases
 - `name` field MUST be an unquoted string matching the intended display name
 - Prompt files MUST use `agent` field (not `mode`) for routing to a specific agent: `agent: "Agent Display Name"`
-- Only emit frontmatter keys documented in current official Copilot documentation. For agents: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`. For prompts: `description`, `agent`.
+- Only emit frontmatter keys listed in the "Supported Frontmatter Keys" table in `copilot-docs-registry.md`. The allowlist is maintained during kit maintenance — never assume a key is valid without checking. Any unlisted key causes editor diagnostics and must not be emitted.
 - Do not emit `tools` or `mcp-servers` unless explicitly requested
 - All generated files in the same bundle MUST use identical YAML formatting conventions
 
@@ -270,7 +300,7 @@ Non-negotiable principles every generated agent must encode. These are the behav
 2. **Confirm business logic** — Identify business rules before writing code. Ask when rules are ambiguous, not after the implementation is wrong.
 3. **No duplicate validation across layers** — Check for existing validation before adding new checks. Each rule enforced in exactly one layer.
 4. **Respect module boundaries** — Do not reach across architectural boundaries. Use established interfaces and dependency patterns.
-5. **Clarify before acting on ambiguity** — When intent or requirements are unclear, use `vscode_askQuestions` to present structured options with a recommended default. Never guess silently, and never write questions as plain text that ends the session — `vscode_askQuestions` keeps the workflow running.
+5. **Clarify before acting on ambiguity** — When intent or requirements are unclear, use `vscode_askQuestions` per the Single-Session Completion Rule. Never guess silently.
 6. **Verify before claiming completion** — Run the project's actual build, test, and lint commands. Do not claim success without evidence.
 7. **Prefer simplicity** — Choose the simplest correct solution. Avoid premature abstraction, unnecessary indirection, or speculative generalization.
 8. **Explain decisions and report outcomes** — State what was done, why, and what changed. Include evidence of verification in completion reports.
@@ -279,125 +309,46 @@ The generator must embed these principles in every generated agent's instruction
 
 ## Harness Engineering Alignment
 
-Generated agents must follow harness engineering principles — designing the environment for reliable agent execution, not just writing instructions.
+Generated agents must follow harness engineering principles — designing the environment for reliable execution.
 
-### Feedforward and Feedback Controls
+### Control Types
 
-Every generated agent ecosystem should distinguish two control types:
+| Type | Role | Examples |
+|------|------|---------|
+| **Feedforward (Guides)** | Context before action to increase correct first output | Architecture docs, coding conventions, implementation notes with file paths |
+| **Feedback (Sensors)** | Checks after action to enable self-correction | Build commands, test suites, linters, AI code review |
 
-- **Feedforward (Guides)**: Context provided *before* the agent acts to increase the probability of correct first output. Examples: architecture docs, coding conventions in instructions, implementation notes with real file paths and symbol names, structured task templates.
-- **Feedback (Sensors)**: Checks that run *after* the agent acts to enable self-correction. Examples: build commands, test suites, linters, type checkers, AI code review.
+Within each: **Computational** (deterministic, fast — linters, type checkers, tests) vs **Inferential** (semantic, non-deterministic — AI review, LLM-as-judge).
 
-Within each type, distinguish:
-- **Computational controls**: Deterministic, fast, reliable — linters, type checkers, tests, structural analysis. Run on every change.
-- **Inferential controls**: Semantic, slower, non-deterministic — AI code review, LLM-as-judge. Run selectively (e.g., PR review, complex changes).
-
-Generated verify-fix loops are feedback sensors. Generated instructions and skills are feedforward guides. The analyzer should assess the project's existing computational and inferential controls so generated agents leverage them.
-
-### Structured Investigation Output (Repository Impact Map)
-
-The Investigator's output must function as a **repository impact map** — grounded in actual code, not abstract analysis:
-- List every file to be modified with specific change descriptions
-- Reference real symbol names, function signatures, and existing patterns to follow
-- Group changes by module/domain with dependency ordering
-- Include human confirmation checkpoint before implementation begins
-- The Orchestrator must not proceed to implementation until the impact map is reviewed
-
-### Execution Plans as Persistent Artifacts
-
-For complex or multi-session work, generated agents must persist execution plans as files rather than keeping them only in-session:
-- Use session memory files (`/memories/session/`) for investigation findings, migration plans, and progress logs
-- Execution plans should include: goal, current phase, completed steps, remaining steps, blocked items, key decisions made
-- Plans are first-class artifacts — versioned, structured, and co-located with the work
-- Agents must read existing plans at the start of work and update them as progress is made
-
-### Agent Legibility
-
-Generated agent outputs must be optimized for downstream consumption by other agents (not just humans):
-- Investigation reports must be structured with clear sections, file references, and machine-parseable change tables — not narrative prose
-- Hand-off documents must use consistent formats that downstream agents can parse reliably
-- Completion reports must include structured evidence (commands run, results, files changed) not just summary text
-- Prefer tabular and list formats over paragraph-form explanations for inter-agent communication
-
-### Steering Loop
-
-Generated agent ecosystems should include guidance for improving the harness over time:
-- When an issue recurs across multiple tasks, the fix should target the harness (instructions, conventions, linter rules) — not just the output
-- Generated bundle evolution guidance must include: "When you find yourself correcting the same agent behavior repeatedly, extract the correction into an instruction file or promote it into a linting rule"
-- The orchestrator should track recurring failure patterns and flag them for harness improvement
-
-### Entropy Management
-
-Generated orchestrator agents should include entropy management for long-lived codebases:
-- Periodic drift detection: agents referencing removed files, outdated conventions, or abandoned patterns
-- Recurring cleanup patterns: identify dead code, stale docs, inconsistent naming
-- Quality tracking: flag when patterns degrade across multiple changes
-- The orchestrator's completion report should include a brief "codebase health" section noting any drift signals observed
+### Key Patterns
+- **Repository impact map**: Investigator output must be grounded in actual code — real file paths, symbol names, dependency-ordered change groups. Human checkpoint before implementation.
+- **Execution plan persistence**: Complex work persists plans to session memory (`/memories/session/`). Plans include: goal, phases, status, decisions, blockers. Plans are first-class artifacts, read at the start of each phase.
+- **Agent legibility**: Inter-agent outputs use structured formats (tables, lists) over prose. Hand-offs use consistent parseable formats.
+- **Steering loop**: When issues recur, fix the harness (instructions, conventions, linter rules) — not just individual outputs. Orchestrator tracks patterns and flags harness improvements.
 
 ## Large Task Execution Pattern
 
-For complex, multi-step tasks (large migrations, major refactors, cross-module changes), generated orchestrator and implementor agents must follow this pattern:
+For complex, multi-step tasks (large migrations, major refactors, cross-module changes), generated agents must follow this pattern:
 
 ### 1. Decomposition
-- Break the task into ordered phases based on dependency analysis
-- Each phase must be independently verifiable (build + tests pass after each phase)
-- Identify phase dependencies — which phases must complete before others can start
-- Estimate scope per phase (files, modules, risk level)
+- Break into ordered phases based on dependency analysis, each independently verifiable (build + tests pass)
+- Identify dependencies between phases and estimate scope (files, modules, risk)
 
-### 2. Planning Persistence
-- Write the decomposed plan to a session memory file before starting execution
-- Plan format: phase list with status (not-started / in-progress / completed / blocked), file targets, validation criteria
-- Use `manage_todo_list` to track phases as visible progress indicators
-
-### 3. Chunked Execution
-- Execute one phase at a time — never attempt the entire migration in a single pass
+### 2. Execution
+- Execute one phase at a time — never the entire task in a single pass
 - After each phase: validate (build → test → lint), update plan status, compact context if needed
-- If a phase fails validation, fix within that phase before proceeding
+- If a phase fails, fix within that phase before proceeding
 
-### 4. Intermediate Validation
-- After each phase, verify the codebase is in a correct intermediate state
-- Run targeted tests for affected modules, not full suite (unless risk warrants it)
-- Document what changed and what remains in the plan file
+### 3. Context Persistence
+- **When**: >5 files or >3 modules affected, >3 implementation steps, >20 file changes, or non-obvious decisions made
+- **How**: Session memory (`/memories/session/`) for task-specific notes. `manage_todo_list` for visible progress. One file per concern (investigation-notes.md, plan.md, progress.md).
+- **Compaction**: Summarize completed phases into structured notes. Read progress notes at phase start to re-ground.
+- For cross-session work (>50 files, >5 modules): use repo memory (`/memories/repo/`) or project files for durable state.
 
-### 5. Context Management for Long Tasks
-- When context is growing large, create a progress summary in session memory: what's done, what's next, key decisions
-- Read the progress summary at the start of each phase to re-ground context
-- Compact investigation findings into structured notes rather than keeping full exploration history
-- Use `manage_todo_list` for visible progress tracking throughout
-
-### 6. Completion
-- Final validation: full build + full test suite + lint
-- Structured completion report with: phases completed, files changed per phase, validation evidence, any remaining risks
+### 4. Completion
+- Full build + full test suite + lint
+- Structured report: phases, files changed per phase, validation evidence, remaining risks
 - Clean up intermediate session memory files
-
-The auditor must verify that generated orchestrator agents include this pattern for complex tasks.
-
-## Context Persistence Strategy
-
-Generated agents must include guidance for preserving context across long or complex tasks to prevent context loss.
-
-### When to Persist Context
-- **Investigation findings**: When investigation reveals >5 files or >3 modules affected, save structured findings to session memory before starting implementation
-- **Multi-step plans**: Any task with >3 discrete implementation steps should have a persisted plan
-- **Long-running tasks**: When a task involves >20 file changes or crosses module boundaries, create a progress checkpoint after each major phase
-- **Key decisions**: When a non-obvious architectural or implementation decision is made, record the decision and rationale in session memory
-
-### How to Persist
-- Use session memory files (`/memories/session/`) for task-specific notes — these persist within the conversation
-- Use `manage_todo_list` for visible progress tracking of multi-step work
-- Format: structured markdown with clear headings, file references, and status indicators
-- Keep files focused: one file per concern (investigation-notes.md, migration-plan.md, progress-log.md)
-
-### Mandatory Clarification Tool
-- **Always use `vscode_askQuestions`** for structured clarification questions — never write questions as plain response text
-- `vscode_askQuestions` keeps the session alive; plain-text questions end the response and break the workflow
-- Provide 2-4 options with one recommended default and a free-input option
-- For low-risk ambiguity, continue provisionally without asking
-
-### Context Compaction
-- When conversation context grows large, summarize completed phases into a compact progress note in session memory
-- Subsequent work reads the progress note instead of relying on full conversation history
-- Investigation context: keep structured findings (file list, change table), discard exploration narrative
 
 ## Context Optimization Rules
 
@@ -546,177 +497,66 @@ handoffs:
 
 ## Evidence Standard
 
-All generated agents must enforce a universal evidence standard for claims, findings, and recommendations:
+| Label | Meaning |
+|-------|---------|
+| (no label) | Code/doc-backed (default) |
+| `[USER-CONFIRMED]` | User explicitly confirmed |
+| `[ASSUMPTION]` | Reasonable inference, not verified |
+| `[NEEDS CLARIFICATION]` | Cannot determine — must ask or investigate |
 
-| Label | Meaning | When to use |
-|-------|---------|-------------|
-| (no label) | Code/doc-backed | Default — claim verified against actual code or documentation |
-| `[USER-CONFIRMED]` | Human-verified | User explicitly confirmed this fact via `vscode_askQuestions` |
-| `[ASSUMPTION]` | Unverified belief | Claim based on reasonable inference but not confirmed by code, docs, or user |
-| `[NEEDS CLARIFICATION]` | Ambiguous/unknown | Cannot determine truth — must ask user or investigate further before proceeding |
-
-### Enforcement Rules
-- Investigators mark uncertain findings as `[ASSUMPTION]` — implementors must verify before coding
-- Business Analysts mark unconfirmed domain rules as `[NEEDS CLARIFICATION]`
-- Code Reviewers must challenge any `[ASSUMPTION]` that reaches review stage without verification
-- Orchestrators track assumption resolution — escalate unresolved assumptions before proceeding
-- The constitution Article II codifies this standard for the project
+Enforcement: Investigators mark uncertain findings as `[ASSUMPTION]`. Implementors verify before coding. Reviewers challenge unverified assumptions. Orchestrators track resolution. The constitution Article II codifies this for the project.
 
 ## Runtime Docs Generation
 
-Generated bundles must include essential documentation files that help users and maintainers operate the agent ecosystem effectively.
+Generated bundles must include:
 
-### User Playbook (`<prefix>-user-playbook.md`)
-- How to invoke agents and use prompts
-- Common workflows with example prompts
-- When to use which agent
-- Troubleshooting: what to do when agents produce wrong output
+- **User Playbook** (`<prefix>-user-playbook.md`): How to invoke agents, common workflows, troubleshooting.
+- **Review Playbook** (`<prefix>-review-playbook.md`): Pipeline stages, short-circuit rules, verdict interpretation, escalation.
 
-### Review Playbook (`<prefix>-review-playbook.md`)
-- How the review pipeline works (stages, short-circuit rules)
-- What each reviewer checks
-- How to interpret review verdicts and severity levels
-- Blast-radius review: when to request additional review for high-impact changes
-- How to override or escalate review findings
+Playbooks reference actual generated agent names and are derived from the bundle — not static templates.
 
-### Generation Rules
-- Playbooks reference actual generated agent names, not generic placeholders
-- Content is derived from the actual bundle — not a static template
-- User playbook is the primary onboarding doc for new team members
-- Review playbook explains the separated review pipeline behavior
+## Bundle Evolution and Drift Detection
 
-## Drift Detection Guidance
+The generated project context instruction must include post-generation maintenance guidance:
 
-Generated bundles should include drift detection awareness so teams can identify when their agent ecosystem becomes stale.
-
-### Five Drift Dimensions
-1. **File references**: Agents reference files/modules that have been renamed, moved, or deleted
-2. **Convention drift**: Agents enforce conventions the team has abandoned or changed
-3. **API pattern drift**: Agents suggest patterns using deprecated or removed APIs
-4. **Architecture drift**: Agents assume architecture that has been restructured
-5. **Ecosystem drift**: Agent-to-agent references are broken (renamed/removed agents)
-
-### Detection Triggers
-- After major refactors or module restructuring
-- After dependency version upgrades (especially Swift, SwiftUI, Xcode)
-- After team convention changes
-- Quarterly review cadence (include in bundle evolution guidance)
-
-### Guidance Placement
-- Include drift awareness in the generated project context instruction's Bundle Evolution section
-- Generated orchestrators should flag suspected drift when they encounter stale references
-- The auditor checks for drift signals during ecosystem audit
+- **Update agents**: After architecture changes, framework migrations, or consistently wrong outputs.
+- **Promote patterns**: Recurring agent corrections → extract into instruction (`applyTo` scoped). This is the steering loop — improve feedforward controls.
+- **Promote to enforcement**: Repeatedly violated instructions → linter rule, structural test, or hook.
+- **Drift signals**: Agents referencing removed files, deprecated APIs, abandoned conventions, or broken agent-to-agent references. Check after major refactors, dependency upgrades, convention changes, or quarterly.
+- **Entropy management**: Track pattern degradation (duplication, inconsistent naming, boundary violations). Address via harness improvements.
 
 ## Review Memory Promotion
 
-Generated bundles must include a learning loop that promotes recurring review findings into durable prevention rules.
+Recurring review findings (≥3 same issue type) trigger promotion to durable rules:
 
-### Promotion Flow
-1. **Detect pattern**: Code Reviewer or Functional Reviewer flags the same issue type ≥3 times
-2. **Propose rule**: Draft an instruction-level rule or checklist item to prevent recurrence
-3. **Validate**: Check if the rule is actionable, specific, and not already covered
-4. **Promote**: Add to the relevant instruction file (path-scoped or global)
-5. **Verify**: Confirm subsequent reviews no longer find the same pattern
-
-### Where to Promote
-- Convention violations → path-scoped instruction with `applyTo` for affected file patterns
-- Repeated test gaps → test specialist's testing instruction
-- Architecture boundary violations → project context instruction
-- If violations persist after instruction promotion → escalate to mechanical enforcement (linter rule, hook)
-
-### Generation Rules
-- Generated orchestrators include a note to track review patterns
-- Generated project context instruction mentions promotion as part of bundle evolution
+1. Draft instruction-level rule or checklist item
+2. Validate: actionable, specific, not already covered
+3. Promote: convention violations → path-scoped instruction; test gaps → testing instruction; boundary violations → project context instruction
+4. If violations persist after promotion → escalate to mechanical enforcement (linter, hook)
 
 ## Hooks Generation
 
-When the analyzer detects linting or formatting tools in the project, the generator should produce hook guidance or actual hook configurations.
-
-### Supported Hook Patterns
-
 | Hook | Trigger | Tool | When |
 |------|---------|------|------|
-| Auto-format | `postToolUse` (file edit) | SwiftFormat or swift-format | When SwiftFormat config (`.swiftformat`, `Package.swift` dependency) is detected |
-| Lint check | `postToolUse` (file edit) | SwiftLint | When `.swiftlint.yml` is present |
-| Compile check | `postToolUse` (file edit) | `xcodebuild build` | When project is Xcode-based and compile-on-save would catch errors early |
+| Auto-format | `postToolUse` (file edit) | SwiftFormat | `.swiftformat` or Package.swift dependency detected |
+| Lint check | `postToolUse` (file edit) | SwiftLint | `.swiftlint.yml` present |
+| Compile check | `postToolUse` (file edit) | `xcodebuild build` | Xcode project, compile-on-save beneficial |
 
-### Rules
-- Only generate hooks when the corresponding tool is already configured in the project
-- Hook files go in `.github/hooks/` or are documented in `copilot-instructions.md`
-- Always include a comment explaining what the hook does and when it fires
-- Compile-check hooks must use the analyzer-detected scheme and destination
-- Hooks are deterministic enforcement — they must never produce false positives
-- Generate hooks when the corresponding tools are detected; document the recommendation when not generating
+Rules: only when tool is already configured, deterministic (no false positives), compile hooks use analyzer-detected scheme/destination. Document recommendation when not generating.
 
 ## Generated File Marking
 
-Every file generated by the kit must include a marker comment immediately after the YAML frontmatter closing `---` to identify it as kit-generated and support maintenance:
+Every generated file includes `<!-- Generated by Apple Agent Builder Kit -->` immediately after the YAML frontmatter closing `---`. Never before frontmatter (breaks YAML parsing). Preserved during updates.
 
-```
----
-name: example-agent
-description: "..."
----
-<!-- Generated by Apple Agent Builder Kit -->
-```
+**Scope**: This marker applies to files generated for **target consumer projects** — agents, skills, instructions, prompts, and templates created by the kit for a user's Apple-platform project.
 
-### Rules
-- The marker is placed on the first line after the YAML frontmatter closing `---` — never before the frontmatter opening `---`
-- Placing the marker before frontmatter breaks YAML parsing and causes editor diagnostics (e.g., "Skill must provide a name")
-- The marker enables users, tools, and the kit itself to distinguish kit-generated files from manually authored ones
-- When refreshing or updating generated files, the marker is preserved as-is (no date or prefix to update)
-- The kit recognizes `<!-- Generated by Apple Agent Builder Kit -->` as the canonical marker pattern for maintenance operations
-- The auditor must verify marker presence and correct placement (after frontmatter) in all generated files
-- Template files within the kit itself (`.github/templates/`) do not get markers — only files generated for target projects
+**Excluded**: The kit's own internal files (`.github/agents/`, `.github/skills/`, `.github/instructions/`, `.github/prompts/`, `.github/templates/` within this repository) are kit meta-files, not generated output. They do not carry this marker.
 
 ## Cross-Session Persistence
 
-For tasks that may exceed a single session's context window (full app rewrites, major version migrations, large-scale refactors), generated agents must include cross-session persistence guidance:
+For tasks exceeding a single session (~50+ files, 5+ modules, multi-phase migrations):
 
-### When to Use Cross-Session Persistence
-- Task scope exceeds ~50 file changes or spans >5 modules
-- Migration work that requires multiple phases over days/weeks
-- Architecture-level changes that cannot be validated incrementally in one session
-
-### How to Persist Across Sessions
-- Use repository memory (`/memories/repo/`) for durable task state that survives across sessions — migration progress, phase status, key decisions, remaining work
-- Use persistent files in the project (e.g., `specs/<task-id>/progress.md`) for structured migration plans and phase tracking
-- Session memory (`/memories/session/`) is for within-session notes only — it does not survive across sessions
-- At the end of each session, write a structured progress summary to repo memory or project files with: completed phases, current phase status, remaining phases, key decisions, blockers
-- At the start of each new session, read the progress summary to re-ground context before continuing
-
-### Plan Format for Cross-Session Work
-```
-# Migration Progress: {task-id}
-## Status: {phase N of M}
-## Completed Phases
-- Phase 1: {description} — {date} — {evidence}
-## Current Phase
-- Phase N: {description} — {status} — {blockers}
-## Remaining Phases
-- Phase N+1: {description}
-## Key Decisions
-- {decision}: {rationale}
-## Blockers
-- {blocker}: {status}
-```
-
-## Anti-Patterns
-
-- Vague descriptions
-- `applyTo: "**"` without strong reason
-- Skills that are only generic advice
-- Agents duplicating prompt/instruction content
-- Hooks for convenience rather than safety
-- Under-building a workflow kit when fuller coverage would help
-- Apple-focused bundle that reads like generic mobile guidance
-- Assuming latest Swift/concurrency/UI defaults when the project uses an older or different stack
-- Merging analysis, generation, and audit when each has distinct failure modes
-
-## Final Output Contract
-
-- Chosen architecture and why
-- Created or changed files
-- Validation results
-- Remaining risks
-- Audit outcome
+- Use repo memory (`/memories/repo/`) or project files (`specs/<task-id>/progress.md`) for durable state
+- Session memory (`/memories/session/`) is within-session only
+- End each session: write structured progress (completed phases, current status, remaining, decisions, blockers)
+- Start each session: read progress to re-ground context

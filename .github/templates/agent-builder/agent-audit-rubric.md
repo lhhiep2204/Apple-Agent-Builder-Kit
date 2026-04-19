@@ -4,9 +4,7 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 
 ## Verdicts
 
-- `PASS`: every finding (major and minor) is resolved. Zero open issues.
-- `REVISE`: any finding still open, regardless of severity. All must be fixed before PASS.
-- `BLOCKED`: missing information prevents credible validation.
+PASS = zero open findings. REVISE = any finding open. BLOCKED = missing info. Full verdict policy and scoring standard in `apple-quality-auditor.agent.md`.
 
 ## Quick Checks
 
@@ -108,13 +106,24 @@ Quick-reference checklist before finalizing. Full scoring standard and minimums 
 - Progress summary format is specified (completed phases, current status, remaining work, key decisions)
 - Session vs repo memory distinction is clear (session memory = within-session only; repo memory = across sessions)
 
+## Community Skill Coverage Checks
+
+- If analyzer reported community skill discovery results, every matched category must be either consumed by at least one generated agent or documented as intentionally skipped with rationale
+- Extracted community skill knowledge embedded in relevant agents as specific, actionable rules — not just "follow SwiftUI best practices" but concrete patterns, anti-patterns, and corrections
+- When multiple skills match the same tech area (e.g., two SwiftUI skills from different authors), the generator must either merge non-conflicting knowledge or choose the best fit and note the alternative
+- Community skill recommendations included in user playbook with `npx` install commands
+- Agents that consume community skill knowledge include a `## Community Skill Knowledge` attribution section listing sources
+- If community skill registry was the only source (no live MCP enrichment), agents note this as `[REGISTRY-ONLY]` — knowledge may be stale
+- Deep-crawl results (actual SKILL.md content) preferred over surface-level README summaries — if only README was available, this is noted
+- Community skill knowledge routed to the correct agent roles: SwiftUI → implementor + reviewer, Testing → test specialist, Concurrency → implementor + reviewer, Security → reviewer + investigator, Architecture → orchestrator + investigator, Accessibility → implementor + reviewer, Performance → reviewer + investigator
+
 ## YAML Frontmatter Validity
 
 - Frontmatter has valid YAML with no editor diagnostics or schema warnings
 - `agents` field (if present) MUST use inline JSON-style array with exact agent display names: `agents: ["Name A", "Name B"]` — NEVER block list syntax (`- item`), NEVER filenames like `*.agent.md` or `*.agent`
 - `description` field MUST be a double-quoted string
 - `name` field MUST be an unquoted string matching the intended display name
-- Only documented frontmatter keys used. For agents: `name`, `description`, `agents`, `tools`, `model`, `target`, `user-invocable`, `disable-model-invocation`, `mcp-servers`, `handoffs`, `hooks`. For prompts: `description`, `agent`.
+- Only frontmatter keys listed in the "Supported Frontmatter Keys" table in `copilot-docs-registry.md` are used — no unlisted, undocumented, or deprecated keys
 - Prompt files MUST use `agent` field (not `mode`) for routing to a specific agent
 - No `tools` or `mcp-servers` unless user explicitly requested constrained tool access
 - Generated non-template files contain no unresolved placeholders like `<...>`
