@@ -53,6 +53,15 @@ description: "Use when: <specific situations, keywords, or trigger phrases that 
 - <Artifact 1>
 - <Artifact 2>
 
+## Templates and Assets
+
+<!-- The generator must populate this section with paths to templates this skill uses to produce its output. Remove this section only if the skill genuinely uses no templates. -->
+
+- Output template: `.github/templates/<prefix>/<template-file>.md`
+- <Example: `.github/templates/<prefix>/spec-template.md` for Specify-Feature skill>
+- <Example: `.github/templates/<prefix>/plan-template.md` for Plan-Implementation skill>
+- <Example: `.github/templates/<prefix>/tasks-template.md` for Generate-Tasks skill>
+
 ## Anti-Patterns
 
 - <What not to do>

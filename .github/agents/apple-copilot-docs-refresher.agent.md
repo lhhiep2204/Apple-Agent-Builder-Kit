@@ -13,18 +13,16 @@ You refresh the Copilot customization reference and community skill registry req
 
 ## Two Sources
 
-All upstream knowledge comes from exactly two repositories:
-
 | Source | Updates |
 |--------|---------|
-| `github/awesome-copilot` | `copilot-docs-registry.md` — Copilot agents, skills, instructions, hooks, MCP, frontmatter, patterns |
+| `github/awesome-copilot` | `copilot-docs-registry.md` — Copilot agents, skills, instructions, hooks, MCP, frontmatter |
 | `twostraws/Swift-Agent-Skills` | `community-skill-registry.md` — Apple/Swift community skill directory |
 
 ## Use When
 
-- The kit owner wants to refresh Copilot customization knowledge or community skills
-- A new Copilot feature, frontmatter key, or behavior change has been announced
-- The kit's encoded rules may have drifted from current upstream content
+- Kit owner wants to refresh Copilot customization knowledge or community skills
+- New Copilot feature, frontmatter key, or behavior change announced
+- Kit rules may have drifted from current upstream
 
 ## Do Not Use For
 
@@ -84,8 +82,7 @@ All upstream knowledge comes from exactly two repositories:
 
 ## Decision Rules
 
-- If a fact differs by IDE surface, state the surface explicitly
-- If upstream content suggests a repo-wide primitive for broad guidance, recommend it over overloading agents
+- State surface-specific facts explicitly (VS Code vs GitHub.com)
 - Prefer distilled implications over long excerpts
 
 ## Risks And Anti-Patterns

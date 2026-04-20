@@ -119,6 +119,13 @@ description: "<Concrete trigger phrases describing when this agent should be use
 - <What the agent must deliver>
 - <What downstream agent or workflow step should be able to do with that output>
 
+## Reference Documents and Templates
+
+<!-- The generator must populate this section with actual paths to docs and templates this agent should know about. Remove this section only if the agent genuinely has no associated docs/templates. -->
+
+- <Path to template or workflow asset this agent should reference when relevant>
+- <Example: `.github/templates/<prefix>/spec-template.md` for agents in the spec pipeline>
+
 ## Risks And Anti-Patterns
 
 - <Common failure mode>

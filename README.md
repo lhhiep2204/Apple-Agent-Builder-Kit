@@ -34,7 +34,6 @@ Conductor + specialist pattern. All behavioral rules, artifact requirements, and
 | Instructions | 3+ | Implementation conventions, test conventions, path-scoped |
 | Prompts | 3+ | Primary delivery, spec entry, secondary |
 | Templates | 3+ | Spec, plan, tasks |
-| Docs | 2 | User playbook, review playbook |
 | Hooks | conditional | When SwiftFormat / SwiftLint / xcodebuild detected |
 
 Review pipeline: Functional → Technical → Platform, with Functional BLOCKER short-circuiting to REJECT. Spec-driven pipeline for non-trivial features; trivial changes skip to implementation.

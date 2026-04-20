@@ -2,24 +2,8 @@
 
 ## Metadata
 
-- Source repository: twostraws/Swift-Agent-Skills
-- Last refresh date: 2026-04-17
-- Refresh method: MCP GitHub + web fetch
-- Note: This is the kit's persistent snapshot of the community skill directory. It is updated by `Apple Copilot Docs Refresher` during kit maintenance. The analyzer reads this file as a baseline and enriches with live MCP GitHub data when available at generation time.
-
-## How This File Is Used
-
-1. **Kit maintenance**: The kit owner runs `Apple Copilot Docs Refresher` periodically. The refresher fetches the current state of `twostraws/Swift-Agent-Skills` README.md and all linked sub-repos, then updates this file in place.
-2. **Generation runtime**: The analyzer reads this file as a reliable baseline for community skill categories, repos, and content summaries. When MCP GitHub is available, the analyzer fetches live data to override/enrich this snapshot. When MCP is unavailable, this snapshot is the sole community skill source.
-3. **Staleness tolerance**: Community skills evolve independently. A snapshot up to 30 days old is acceptable. Beyond that, the kit owner should refresh before major generation runs.
-
-## Registry Structure
-
-Each category lists:
-- **Category name** matching the upstream README heading
-- **Skills** with repo URL, author, and a content summary (key patterns, anti-patterns, and decision rules extracted from the skill's SKILL.md or primary content file)
-- **Content file path** — the path within each sub-repo where the primary skill content lives (typically `<skill-folder>/SKILL.md`)
-- **Tech stack match criteria** — what project signals should trigger this category during analysis
+- Source: twostraws/Swift-Agent-Skills | Updated: 2026-04-17 | Method: MCP GitHub + web fetch
+- Persistent snapshot read by analyzer at runtime. Enriched with live MCP data when available. Maintained by `Apple Copilot Docs Refresher`.
 
 ---
 
@@ -168,14 +152,9 @@ These are additional references listed in the upstream directory:
 
 ## Refresh Instructions
 
-When updating this file during kit maintenance:
-
-1. Fetch the current README.md of `twostraws/Swift-Agent-Skills` via MCP GitHub or web fetch
-2. Compare the current category listing and skill links against this snapshot
-3. For new skills: add them to the appropriate category with repo URL, author, and content path
-4. For removed skills: remove the entry from the appropriate category
-5. For each skill with "Check repo for SKILL.md" in the content path column: attempt to read the repo to discover the actual SKILL.md path and extract key knowledge. Update the content path and key knowledge columns
-6. For each skill where the key knowledge is already populated: verify the content is still accurate by reading the sub-repo's primary content file. Update if content has changed materially
-7. Check the "Related Resources" section for new entries in the upstream README
-8. Update the "Last refresh date" in the metadata section
-9. If any sub-repo is inaccessible, mark the skill row with `[UNREACHABLE — <date>]` and keep the previous content
+1. Fetch `twostraws/Swift-Agent-Skills` README.md via MCP GitHub or web fetch
+2. Add new skills, remove deleted skills, update changed content paths and key knowledge
+3. For skills with "Check repo for SKILL.md": read repo to discover actual path and extract key knowledge
+4. Check "Related Resources" for new upstream entries
+5. Update "Last refresh date" in metadata
+6. If sub-repo inaccessible, mark `[UNREACHABLE — <date>]` and keep previous content

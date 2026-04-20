@@ -14,6 +14,55 @@ Consumers:
 
 Use this skill to design and generate high-quality Copilot customization bundles for Apple platform projects. This is the single source of truth for the complete kit workflow, bundle shapes, and artifact behavioral requirements.
 
+## Section Index
+
+| Section | What it covers |
+|---------|---------------|
+| Use Cases | When to invoke this skill |
+| Apple Scope | Platforms, fallback defaults, alignment rule |
+| Operating Modes / Three Operating Flows | Discovery vs Fast, Greenfield vs Verify vs Extend |
+| Default Behavior | Generation defaults, tool restrictions, alignment |
+| Single-Session Completion Rule | Never abandon mid-workflow, vscode_askQuestions |
+| Workflow | 6-phase standard flow, kit reference files, community skill discovery |
+| Bundle Shapes | Single / Focused / Full Kit minimums |
+| Artifact Requirements | Per-primitive rules: Agent, Skill, Instruction, Prompt, Hook, YAML Frontmatter |
+| Generation Principles | 8 non-negotiable rules for every generated agent |
+| Harness Engineering Alignment | Feedforward/feedback, control types, key patterns |
+| Large Task Execution Pattern | Decomposition, chunked execution, persistence |
+| Context Optimization Rules | Three-layer model, signal-to-noise, context budget |
+| Bundle Evolution Guidance | Maintenance triggers table for generated project context instruction |
+| Constitution Pattern | Structure, generation rules, Phase -1 gates |
+| Spec-Driven Pipeline | 4-stage pipeline, templates, activation criteria |
+| Separated Review Pipeline | 4-agent review, short-circuit, evidence standard |
+| Handoffs Pattern | Frontmatter format, delegation rules |
+| Evidence Standard | Labels, enforcement, flow |
+| Bundle Evolution and Drift Detection | Ref to Bundle Evolution Guidance (same content) |
+| Review Memory Promotion | Recurring findings → durable rules |
+| Hooks Generation | Auto-format, lint, compile hooks |
+| Generated File Marking | Marker placement rules |
+| Cross-Session Persistence | Repo memory, session memory, progress format |
+
+## Reference Assets
+
+| Asset | Path | Purpose |
+|-------|------|---------|
+| Role catalog | `apple-role-catalog.md` | Default role names for generated agents |
+| Primitive decision matrix | `primitive-decision-matrix.md` | Agent vs skill vs instruction vs prompt vs hook |
+| Hook checklist | `hook-checklist.md` | 3-condition test before generating hooks |
+| Copilot docs registry | `copilot-docs-registry.md` | Frontmatter allowlist, product behavior |
+| Community skill registry | `community-skill-registry.md` | Swift community skills snapshot |
+| Agent template | `agent-template.md` | Scaffold for generated agents |
+| Skill template | `skill-template.md` | Scaffold for generated skills |
+| Instruction template | `instruction-template.md` | Scaffold for generated instructions |
+| Prompt template | `prompt-template.md` | Scaffold for generated prompts |
+| Constitution template | `constitution-template.md` | Scaffold for generated constitutions |
+| Spec / Plan / Tasks templates | `spec-template.md`, `plan-template.md`, `tasks-template.md` | Scaffolds for spec pipeline |
+| Workflow asset template | `workflow-asset-template.md` | Scaffold for generated workflow assets |
+| Audit rubric | `agent-audit-rubric.md` | Quick-reference checklist for auditor |
+| Codebase analysis template | `apple-codebase-analysis-template.md` | Output structure for analyzer |
+
+All template paths are relative to `.github/templates/agent-builder/`.
+
 ## Use Cases
 
 - Create a new custom agent for Apple engineering or agile delivery
@@ -53,14 +102,12 @@ Triggered via `/add-agent` prompt:
 ## Default Behavior
 
 - Operating mode selection: see Operating Modes above
-- If the user chooses the wrong primitive, offer 2-3 better options
-- Generate files in English by default
-- Prefer portable designs unless the user asks for repo-locked behavior
+- If user chooses wrong primitive, offer 2-3 better options
+- Generate files in English. Prefer portable designs unless user requests repo-locked.
 - Multi-agent architecture when quality depends on distinct phases
 - Hard audit gate for non-trivial bundles
-- Generated agents must not declare `tools` or `mcp-servers` in frontmatter by default; omitting these fields keeps all tools (including user-configured MCP servers) accessible
-- Generated agents must include explicit MCP tool preference guidance for any agent that may interact with external services — "do not restrict MCP in frontmatter" must not be misread as "do not use MCP at runtime"
-- Align generated agents to the project's actual technology profile — never assume latest defaults when the codebase shows otherwise
+- Do not declare `tools` or `mcp-servers` in frontmatter by default (keeps all tools accessible). Include explicit MCP tool preference guidance for agents that interact with external services.
+- Align to project's actual technology profile — never assume latest defaults when codebase shows otherwise
 - When invoked directly: confidence ≥ 95% before generation
 - When invoked via prompt: skip confidence interview, analyze directly
 
@@ -91,13 +138,11 @@ Internal setup work (reading skill files, loading templates, scanning existing f
 
 ### Kit Reference Files
 
-The kit maintains one persistent reference file that the generator reads directly during generation:
+The kit maintains one persistent reference file read by the generator during generation:
 
-- `.github/templates/agent-builder/copilot-docs-registry.md` — Copilot product behavior: frontmatter rules, primitives, tool behavior, hook behavior, instruction precedence. Updated by `Apple Copilot Docs Refresher` during kit maintenance.
+- `.github/templates/agent-builder/copilot-docs-registry.md` — Copilot product behavior: frontmatter rules, primitives, tool behavior, hook behavior, instruction precedence. Updated by `Apple Copilot Docs Refresher` during kit maintenance. Authoritative input — does not need fetching each run.
 
-Apple platform domain knowledge is not maintained as a separate snapshot. It must come from the target project's codebase analysis: source files, project config, tests, resources, entitlements, and migration signals. When project signal is thin, use cautious fallback assumptions and mark them explicitly.
-
-The docs snapshot is an authoritative generator input. It does not need to be fetched each run — the kit owner updates it periodically using the refresher agent during kit maintenance sessions.
+Apple platform domain knowledge comes from the target project's codebase analysis (source files, config, tests, resources, entitlements, migration signals). When signal is thin, use cautious fallback assumptions and mark explicitly.
 
 ### Community Skill Discovery (Registry-Backed, MCP-Enriched)
 
@@ -109,14 +154,13 @@ During the analysis phase, the analyzer discovers community agent skills relevan
 
 #### Runtime Behavior
 
-- **Timing**: After the analyzer determines the Technology Alignment Profile, as part of the analysis phase
-- **Baseline**: Always read `community-skill-registry.md` first — this provides the full category listing and pre-extracted knowledge
-- **Fallback chain**: MCP live + registry (best) → web fetch + registry (good) → registry only (acceptable). Never skip community skills entirely — the registry snapshot ensures baseline coverage.
-- **Deep crawl**: When MCP GitHub is available, the analyzer must read the actual SKILL.md content files from each matching sub-repo (not just the directory README). This extracts specific patterns, anti-patterns, deprecated API warnings, and edge cases — the highest-value content that LLMs commonly get wrong.
-- **Output**: Community Skill Discovery Results section in the analysis output — discovery method, registry snapshot date, matched categories, deep-crawl status, extracted knowledge per skill, cross-reference against project patterns, and per-agent-role recommendations for the generator
-- **Generator consumption**: Embed specific knowledge (patterns, rules, anti-patterns) in generated agents for matching tech stack areas + recommend users install community skills for latest updates
-- **Precedence**: Project-specific code patterns always override community skill guidance when they conflict. Conflicts must be noted explicitly.
-- **Staleness management**: The registry snapshot is refreshed during kit maintenance. At generation time, if the snapshot is >30 days old, the analyzer notes the staleness so the user can decide whether to refresh before a major generation run.
+- **Timing**: After Technology Alignment Profile is determined, during analysis phase
+- **Baseline**: Always read `community-skill-registry.md` first — full category listing and pre-extracted knowledge
+- **Fallback chain**: MCP live + registry (best) → web fetch + registry (good) → registry only (acceptable). Never skip entirely.
+- **Deep crawl**: When MCP GitHub available, read actual SKILL.md content files from matching sub-repos (not just directory README) to extract patterns, anti-patterns, deprecated API warnings, and edge cases
+- **Output**: Community Skill Discovery Results section in analysis — discovery method, registry date, matched categories, deep-crawl status, extracted knowledge, per-agent-role recommendations
+- **Generator consumption**: Embed specific knowledge in generated agents for matching tech stack + recommend users install community skills. Project-specific patterns override community guidance on conflict (note conflicts explicitly).
+- **Staleness**: If snapshot >30 days old, note staleness so user can refresh before major generation
 
 ### 1. Clarify the Outcome
 
@@ -158,8 +202,6 @@ Use scaffold templates from `.github/templates/agent-builder/`:
 | workflow asset | `workflow-asset-template.md` |
 | constitution | `constitution-template.md` |
 | spec / plan / tasks | `spec-template.md`, `plan-template.md`, `tasks-template.md` |
-| user playbook | `user-playbook-template.md` |
-| review playbook | `review-playbook-template.md` |
 
 Pick roles from `apple-role-catalog.md`. Replace every `<...>` placeholder with project-grounded content.
 
@@ -211,7 +253,6 @@ Send to auditor. If `REVISE`, patch every finding (major and minor) and re-audit
 - 3+ instructions (implementation + testing + path-scoped)
 - 3+ prompts (primary delivery + spec entry + secondary)
 - 3+ templates for recurring hand-offs (including spec/plan/tasks)
-- 2 docs (user playbook + review playbook)
 - Explicit hook decision (SwiftLint/SwiftFormat auto-format, xcodebuild compile-check when warranted)
 - Handoffs in frontmatter for all delegating agents
 - Evidence standard embedded in agents + constitution
@@ -321,10 +362,10 @@ Generated agents must follow harness engineering principles — designing the en
 Within each: **Computational** (deterministic, fast — linters, type checkers, tests) vs **Inferential** (semantic, non-deterministic — AI review, LLM-as-judge).
 
 ### Key Patterns
-- **Repository impact map**: Investigator output must be grounded in actual code — real file paths, symbol names, dependency-ordered change groups. Human checkpoint before implementation.
-- **Execution plan persistence**: Complex work persists plans to session memory (`/memories/session/`). Plans include: goal, phases, status, decisions, blockers. Plans are first-class artifacts, read at the start of each phase.
-- **Agent legibility**: Inter-agent outputs use structured formats (tables, lists) over prose. Hand-offs use consistent parseable formats.
-- **Steering loop**: When issues recur, fix the harness (instructions, conventions, linter rules) — not just individual outputs. Orchestrator tracks patterns and flags harness improvements.
+- **Repository impact map**: Investigator output grounded in actual code — real file paths, symbol names, dependency-ordered change groups. Human checkpoint before implementation.
+- **Execution plan persistence**: Complex work persists plans to session memory. Plans include goal, phases, status, decisions, blockers. Read at each phase start.
+- **Agent legibility**: Inter-agent outputs use structured formats (tables, lists) over prose. Consistent parseable hand-off formats.
+- **Steering loop**: Recurring issues → fix the harness (instructions, conventions, linter rules), not just individual outputs. Orchestrator tracks and flags.
 
 ## Large Task Execution Pattern
 
@@ -340,10 +381,10 @@ For complex, multi-step tasks (large migrations, major refactors, cross-module c
 - If a phase fails, fix within that phase before proceeding
 
 ### 3. Context Persistence
-- **When**: >5 files or >3 modules affected, >3 implementation steps, >20 file changes, or non-obvious decisions made
-- **How**: Session memory (`/memories/session/`) for task-specific notes. `manage_todo_list` for visible progress. One file per concern (investigation-notes.md, plan.md, progress.md).
-- **Compaction**: Summarize completed phases into structured notes. Read progress notes at phase start to re-ground.
-- For cross-session work (>50 files, >5 modules): use repo memory (`/memories/repo/`) or project files for durable state.
+- **When**: >5 files, >3 modules, >3 steps, >20 changes, or non-obvious decisions
+- **How**: Session memory for task notes, `manage_todo_list` for progress, one file per concern
+- **Compaction**: Summarize completed phases into structured notes. Read progress notes at phase start.
+- Cross-session (>50 files, >5 modules): repo memory or project files for durable state
 
 ### 4. Completion
 - Full build + full test suite + lint
@@ -355,12 +396,12 @@ For complex, multi-step tasks (large migrations, major refactors, cross-module c
 Rules for efficient context usage in generated agents and artifacts.
 
 ### Signal-to-Noise Discipline
-- Generated agents should produce concise, phase-bounded outputs — not restate upstream context
+- Generated agents produce concise, phase-bounded outputs — not restate upstream context
 - Hand-offs between agents prefer delta summaries with file and line references over repeated full-context prose
 - Static rules belong in instructions and skills (loaded once), not duplicated across every agent's instructions
 
 ### Three-Layer Context Model
-Generated bundles should distribute context efficiently across three layers (plus a workspace-level foundation):
+Generated bundles distribute context efficiently across three layers (plus a workspace-level foundation):
 
 **Foundation**: `copilot-instructions.md` — Workspace-level instructions automatically loaded by Copilot for all interactions. Concise project overview, technology stack, core conventions, agent ecosystem guide (available agents, prompt entry points, how to invoke). Target 40-80 lines. This is the entry point for anyone using Copilot in the project.
 
@@ -378,35 +419,34 @@ Do not duplicate content between `copilot-instructions.md` and the project conte
 
 ## Bundle Evolution Guidance
 
-The generated project context instruction should include a brief section guiding post-generation maintenance:
+The generated project context instruction must include a brief maintenance guidance section. The generator must include this in every generated project context instruction. Content:
 
-- **When to update agents**: After major architecture changes, new module additions, framework migrations, or when agents produce consistently wrong outputs.
-- **When to promote patterns**: If you find yourself correcting the same agent behavior repeatedly, extract the correction into an instruction file with a narrow `applyTo` scope. This is the **steering loop** — improve the harness (feedforward controls), not just individual outputs.
-- **When to add instructions**: When a new convention emerges that applies to specific file patterns (e.g., new test naming convention, new module boundary rule).
-- **When to promote to mechanical enforcement**: When an instruction is violated repeatedly despite being documented, consider promoting the rule to a computational control (linter rule, structural test, pre-commit hook) that catches violations automatically.
-- **Drift signals**: Agents referencing removed files, using outdated API patterns, or suggesting conventions the team abandoned are signs of drift — update the affected agents.
-- **Entropy management**: Periodically review agent outputs for pattern degradation: growing duplication, inconsistent naming, architectural boundary violations. Address these by improving feedforward controls, not just fixing individual instances.
-
-The generator must include this guidance section in every generated project context instruction.
+| Trigger | Action |
+|---------|--------|
+| Architecture changes, framework migrations, consistently wrong outputs | Update affected agents |
+| Recurring agent corrections (≥3 same issue) | Extract into instruction (`applyTo` scoped) — this is the **steering loop** |
+| New convention for specific file patterns | Add path-scoped instruction |
+| Instruction violated repeatedly despite documentation | Promote to mechanical enforcement (linter, structural test, hook) |
+| Agents reference removed files, deprecated APIs, abandoned conventions | Drift — update affected agents. Check after major refactors, dependency upgrades, quarterly. |
+| Growing duplication, inconsistent naming, boundary violations | Entropy — improve feedforward controls |
 
 ## Constitution Pattern
 
 Generated bundles must include a `<prefix>-constitution.md` instruction file (`applyTo: "**"`) that defines immutable governance rules for the project. The constitution is the highest-authority document in the generated bundle — it overrides any agent-specific instruction when they conflict.
 
 ### Structure
-1. **Preamble** — Bundle identity and purpose statement
-2. **Article I: Scope & Boundaries** — What the bundle covers and what it does not
-3. **Article II: Evidence Standard** — Every business-rule claim must be backed by code/doc evidence, user confirmation, or labeled `[ASSUMPTION]` / `[NEEDS CLARIFICATION]`. No unanchored assertions.
-4. **Article III: Review Pipeline** — Multi-stage review process requirements, short-circuit rules, verdict authority
-5. **Article IV: Change Governance** — Blast-radius assessment rules, mandatory checkpoints for high-impact changes
-6. **Article V: Specification Discipline** — Spec-driven pipeline requirements for non-trivial features
-7. **Article VI: Context Persistence** — Session memory usage rules, progress tracking requirements
-8. **Article VII: Escalation** — When and how to escalate to human decision-making
-9. **Phase -1 Gates** — Constitutional gates that MUST pass before implementation begins:
-   - **Simplicity Gate**: Is this the simplest approach that satisfies the requirement?
-   - **Duplication Gate**: Does this duplicate existing logic? Can existing code be reused?
-   - **Business Logic Gate**: Are business rules verified against source (code, docs, domain expert)?
-   - **Impact Gate**: Is the blast radius understood and acceptable?
+
+| Article | Content |
+|---------|---------|
+| Preamble | Bundle identity and purpose |
+| I: Scope & Boundaries | Coverage and exclusions |
+| II: Evidence Standard | Code/doc evidence, `[ASSUMPTION]`/`[NEEDS CLARIFICATION]` labels |
+| III: Review Pipeline | Multi-stage review, short-circuit, verdict authority |
+| IV: Change Governance | Blast-radius assessment, mandatory checkpoints |
+| V: Specification Discipline | Spec-driven pipeline requirements |
+| VI: Context Persistence | Session memory, progress tracking |
+| VII: Escalation | When/how to escalate to human |
+| Phase -1 Gates | **Simplicity** (simplest approach?), **Duplication** (reuse existing?), **Business Logic** (rules verified?), **Impact** (blast radius acceptable?) |
 
 ### Generation Rules
 - The generator produces the constitution from project analysis — not a generic template
@@ -421,28 +461,33 @@ Generated bundles must include a spec-driven pipeline that normalizes feature wo
 
 ### Pipeline Stages
 
-1. **Refine User Input** — Normalize raw user requests into structured goal/anchor/constraints format. Validate completeness, identify ambiguity, and extract acceptance criteria. This prevents routing errors and wasted implementation cycles.
-2. **Specify Feature** — Produce a feature specification (PRD) stored in `specs/<feature-id>/spec.md`. Sections: Problem Statement, Scope and Non-Goals, Acceptance Criteria (testable), Domain Rules, Edge Cases, Dependencies, Technical Constraints. The spec is the contract between planning and implementation.
-3. **Plan Implementation** — Given a spec, produce an implementation plan stored in `specs/<feature-id>/plan.md`. Sections: Architecture Approach, File Changes (with dependency order), Risk Assessment, Test Strategy, Rollback Plan. The plan is reviewed before implementation begins.
-4. **Generate Tasks** — Given a plan, produce ordered task breakdowns stored in `specs/<feature-id>/tasks.md`. Each task: description, files, validation criteria, estimated complexity, dependency on prior tasks. Tasks feed directly into `manage_todo_list` for execution tracking.
+| Stage | Input → Output | Key Sections |
+|-------|---------------|--------------|
+| 1. Refine User Input | Raw request → structured goal/anchor/constraints | Completeness check, ambiguity resolution, AC extraction |
+| 2. Specify Feature | Structured goal → `specs/<id>/spec.md` | Problem, Scope/Non-Goals, AC (testable), Domain Rules, Edge Cases, Dependencies, Constraints |
+| 3. Plan Implementation | Spec → `specs/<id>/plan.md` | Architecture Approach, File Changes (dependency-ordered), Risk, Test Strategy, Rollback |
+| 4. Generate Tasks | Plan → `specs/<id>/tasks.md` | Per-task: description, files, validation, complexity, dependencies. Feed into `manage_todo_list` |
 
 ### Spec Workspace
-- Feature specs live in `specs/<feature-id>/` directory
-- Each feature gets: `spec.md`, `plan.md`, `tasks.md`
-- Specs are living documents — updated as implementation reveals new constraints
-- Closed specs can be archived or deleted after merge
+Feature specs live in `specs/<feature-id>/` (`spec.md`, `plan.md`, `tasks.md`). Living documents — updated as implementation reveals constraints. Archive or delete after merge.
 
 ### When to Activate
-- **Always**: for features that touch >3 files, cross module boundaries, change business logic, or affect shared/core code
-- **Skip**: for trivial changes (typos, small config edits, single-file fixes) where direct implementation is faster
-- The orchestrator decides activation based on the task's complexity assessment
+- **Always**: >3 files, cross-module, business logic changes, shared/core code
+- **Skip**: trivial changes (typos, config, single-file fixes)
+- Orchestrator decides based on complexity assessment
 
 ### Generated Assets
-- **Refine-User-Input skill**: intake normalizer that structures raw requests
-- **Specify-Feature skill**: PRD generation workflow with templates
-- **Plan-Implementation skill**: architecture planning with risk assessment
-- **Generate-Tasks skill**: task breakdown for execution tracking
-- Templates for spec, plan, and tasks (see `spec-template.md`, `plan-template.md`, `tasks-template.md`)
+Skills: Refine-User-Input, Specify-Feature, Plan-Implementation, Generate-Tasks. Templates: `spec-template.md`, `plan-template.md`, `tasks-template.md`.
+
+### Template Cross-Reference Requirements
+
+Generated spec pipeline templates are useless unless the skills that produce specs/plans/tasks reference them by path. The generator must wire:
+
+- Specify-Feature skill must reference `.github/templates/<prefix>/spec-template.md` as its output structure
+- Plan-Implementation skill must reference `.github/templates/<prefix>/plan-template.md` as its output structure
+- Generate-Tasks skill must reference `.github/templates/<prefix>/tasks-template.md` as its output structure
+- Investigation skill (if it has a report template) must reference `.github/templates/<prefix>/investigation-report-template.md`
+- At minimum, each generated template must have ≥1 inbound reference from a skill or agent
 
 ## Separated Review Pipeline
 
@@ -461,11 +506,7 @@ Generated bundles must include a multi-stage review pipeline replacing the singl
 The Functional Reviewer runs first. If any **BLOCKER** severity finding is raised (broken business logic, AC violation, data integrity issue), the review pipeline **REJECT**s immediately — Technical and Platform reviews do not run. This prevents wasting review cycles on code that is fundamentally wrong from a business perspective.
 
 ### Evidence Standard in Reviews
-Every review finding must include:
-- **Code anchor**: file path and line reference to the exact issue
-- **Evidence type**: code-backed, spec-backed, user-confirmed, `[ASSUMPTION]`, or `[NEEDS CLARIFICATION]`
-- **Severity**: blocker / major / minor / suggestion
-- **Fix suggestion**: concrete code-level recommendation
+Every finding requires: code anchor (file + line), evidence type (per Evidence Standard section), severity (blocker/major/minor/suggestion), and concrete fix suggestion.
 
 ### When to Generate Separated Review
 - Always generate the full 4-agent pipeline (Code Review Orchestrator + Functional Reviewer + Technical Reviewer + Platform Reviewer)
@@ -490,10 +531,10 @@ handoffs:
 - Every agent that delegates to other agents MUST declare handoffs
 - Orchestrators have handoffs to all agents they can route to
 - Specialist agents have handoffs back to the orchestrator (for escalation/completion)
-- Handoff prompts should be specific enough to provide context for the receiving agent
+- Handoff prompts must be specific enough to provide context for the receiving agent
 - `label` is the user-facing button text — keep it short and action-oriented
 - `agent` must be the exact display name (same as used in `agents` frontmatter)
-- Handoffs supplement `agents` frontmatter — both should be present
+- Handoffs supplement `agents` frontmatter — both must be present
 
 ## Evidence Standard
 
@@ -506,24 +547,9 @@ handoffs:
 
 Enforcement: Investigators mark uncertain findings as `[ASSUMPTION]`. Implementors verify before coding. Reviewers challenge unverified assumptions. Orchestrators track resolution. The constitution Article II codifies this for the project.
 
-## Runtime Docs Generation
-
-Generated bundles must include:
-
-- **User Playbook** (`<prefix>-user-playbook.md`): How to invoke agents, common workflows, troubleshooting.
-- **Review Playbook** (`<prefix>-review-playbook.md`): Pipeline stages, short-circuit rules, verdict interpretation, escalation.
-
-Playbooks reference actual generated agent names and are derived from the bundle — not static templates.
-
 ## Bundle Evolution and Drift Detection
 
-The generated project context instruction must include post-generation maintenance guidance:
-
-- **Update agents**: After architecture changes, framework migrations, or consistently wrong outputs.
-- **Promote patterns**: Recurring agent corrections → extract into instruction (`applyTo` scoped). This is the steering loop — improve feedforward controls.
-- **Promote to enforcement**: Repeatedly violated instructions → linter rule, structural test, or hook.
-- **Drift signals**: Agents referencing removed files, deprecated APIs, abandoned conventions, or broken agent-to-agent references. Check after major refactors, dependency upgrades, convention changes, or quarterly.
-- **Entropy management**: Track pattern degradation (duplication, inconsistent naming, boundary violations). Address via harness improvements.
+See Bundle Evolution Guidance above. The same table content applies to both the generated project context instruction and the kit's own drift detection checks.
 
 ## Review Memory Promotion
 
@@ -546,17 +572,11 @@ Rules: only when tool is already configured, deterministic (no false positives),
 
 ## Generated File Marking
 
-Every generated file includes `<!-- Generated by Apple Agent Builder Kit -->` immediately after the YAML frontmatter closing `---`. Never before frontmatter (breaks YAML parsing). Preserved during updates.
+Every generated file includes `<!-- Generated by Apple Agent Builder Kit -->` immediately after the YAML frontmatter closing `---`. Never before frontmatter (breaks YAML). Preserved during updates.
 
-**Scope**: This marker applies to files generated for **target consumer projects** — agents, skills, instructions, prompts, and templates created by the kit for a user's Apple-platform project.
-
-**Excluded**: The kit's own internal files (`.github/agents/`, `.github/skills/`, `.github/instructions/`, `.github/prompts/`, `.github/templates/` within this repository) are kit meta-files, not generated output. They do not carry this marker.
+**Scope**: Files generated for target consumer projects only. Kit's own internal files (this repository's `.github/` content) are excluded.
 
 ## Cross-Session Persistence
 
-For tasks exceeding a single session (~50+ files, 5+ modules, multi-phase migrations):
-
-- Use repo memory (`/memories/repo/`) or project files (`specs/<task-id>/progress.md`) for durable state
-- Session memory (`/memories/session/`) is within-session only
-- End each session: write structured progress (completed phases, current status, remaining, decisions, blockers)
+For tasks exceeding a single session (~50+ files, 5+ modules, multi-phase migrations): use repo memory or project files (`specs/<task-id>/progress.md`) for durable state. Session memory is within-session only. End each session with structured progress: completed phases, status, remaining, decisions, blockers.
 - Start each session: read progress to re-ground context

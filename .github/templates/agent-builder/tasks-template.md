@@ -44,3 +44,7 @@ Use this when generating a tasks-template for a target project's spec-driven pip
 - Dependency column prevents out-of-order execution
 - Tasks feed directly into `manage_todo_list` for progress tracking
 - The template lives in `.github/templates/<prefix>/` in the generated bundle
+
+## Cross-Reference Wiring (Required)
+
+The generated tasks template must be referenced by the Generate-Tasks skill and the Dev Orchestrator. Full wiring rules and verification checklist in SKILL.md > Template Cross-Reference Requirements. Orphan check in `agent-audit-rubric.md` > Template Orphan Check.

@@ -2,16 +2,8 @@
 
 ## Metadata
 
-- Source repository: github/awesome-copilot
-- Last refresh date: 2026-04-17
-- Refresh method: MCP GitHub + web fetch
-- Note: This is the kit's persistent snapshot of Copilot customization knowledge from `github/awesome-copilot`. Updated in place when the kit owner runs `Apple Copilot Docs Refresher`. The generator reads this file directly during generation — no per-run fetch is needed.
-
-## How This File Is Used
-
-1. **Kit maintenance**: The kit owner runs `Apple Copilot Docs Refresher` periodically. The refresher fetches the current state of `github/awesome-copilot` (Learning Hub, example files, `llms.txt`), then updates this file in place.
-2. **Generation runtime**: The generator reads this file directly for Copilot product behavior rules (frontmatter allowlist, tool behavior, hook schema, instruction precedence). No per-run fetch is needed.
-3. **Staleness tolerance**: Copilot behavior evolves with product releases. A snapshot up to 30 days old is acceptable. Beyond that, the kit owner should refresh before major generation runs.
+- Source: github/awesome-copilot | Updated: 2026-04-17 | Method: MCP GitHub + web fetch
+- Persistent snapshot read by generator at runtime. Maintained by `Apple Copilot Docs Refresher`.
 
 ---
 
@@ -74,58 +66,25 @@ This is the authoritative allowlist for frontmatter keys the generator may emit.
 
 ## Implications For Generation
 
-- The kit maintains this file as a persistent reference; the generator reads it directly during generation without per-run fetching. The kit owner should re-run `Apple Copilot Docs Refresher` periodically or before major rule updates.
-- Generated workflow kits should prefer repo-grounded instructions, prompts, validation guidance, and templates over generic prose because current docs reinforce scoped tasks and concrete validation
-- For portability across environments, generated agents should avoid frontmatter `tools` and `mcp-servers` by default and encode behavior constraints in instructions unless the user explicitly asks for constrained tool access
-- Hook generation must stay conditional and justified; a no-hook rationale is better than speculative hook output when deterministic commands are not available
-- The auditor and quick rubric should both check for concrete validation guidance and orchestrator guardrails so lightweight audits do not miss hard requirements
-- The generator should not emit plugin manifests or agentic workflow files until their schemas are confirmed; generated agents and skills may later be grouped into a plugin structure as a follow-up
-- Upstream hook diversity (governance + productivity patterns) validates the kit's hook generation approach: only emit hooks when deterministic, auditable commands exist for the use case
-- The existence of a swift-mcp-development plugin upstream confirms MCP server generation as a viable skill for Apple platform agents
-
-## Conflicts With Existing Kit Rules
-
-- The previous kit state allowed a full workflow bundle to pass while generating mostly agents; that no longer matched the documentation emphasis on explicit guidance, repeatable instructions, and validation support
-- The previous kit state could overreact to unrelated dirty-worktree changes instead of preserving user edits and continuing safely
-- The kit's `llms.txt` fetch step in the refresh instructions assumed the file was in the repo root; it is on the website (`awesome-copilot.github.com/llms.txt`) — refresh instructions below have been updated to reflect this
-
-## Recommended Follow-Up Changes
-
-- Require supporting skill, instruction, prompt, and template/checklist coverage by default for full workflow generation, unless analysis proves strong existing artifacts already cover those needs
-- Require repo-grounded validation commands, micro-change handling, skip rules, and reviewer conflict resolution in generated workflow bundles
-- Preserve unrelated worktree changes and escalate only for direct path conflicts with target generated files
-- Investigate agentic workflow frontmatter schema (from `gh aw` CLI docs or upstream workflow examples) and add a confirmed row to the frontmatter allowlist table when stable
-- Consider generating plugin-ready directory structures when producing multi-agent bundles, so users can optionally package and distribute them
-- Evaluate upstream hook examples (governance-audit, secrets-scanner, tool-guardian) as templates for Apple-specific hook generation patterns
+- Prefer repo-grounded instructions, validation guidance, and templates over generic prose
+- Avoid frontmatter `tools` and `mcp-servers` by default; encode constraints in instructions unless user explicitly requests
+- Hook generation: conditional and justified only. No-hook rationale preferred over speculative hooks
+- Do not emit plugin manifests or agentic workflow files until schemas are confirmed
+- MCP server generation is viable for Apple platform agents (confirmed by upstream swift-mcp-development plugin)
 
 ## Residual Risks
 
-- Current guidance remains surface-sensitive, especially for IDE preview features and scoped hooks
-- Generated instruction quality still depends on analyzer quality; if analysis misses stable scopes or validation commands, downstream artifacts can still be weaker than intended
-- Agentic workflow frontmatter schema is unconfirmed — the generator must not emit workflow files until this is resolved
-- Plugin manifest format stability is assumed but not guaranteed; early adoption of plugin-structured output could require rework
-- The `llms.txt` machine-readable index was not fetched from the website during this refresh; if it contains additional keys or constraints not visible in the repo, those are missing from this snapshot
+- Agentic workflow frontmatter schema unconfirmed — do not emit workflow files
+- Plugin manifest format may evolve — do not generate plugin manifests directly
+- `llms.txt` on website (`awesome-copilot.github.com/llms.txt`), not in repo root
 
 ---
 
 ## Refresh Instructions
 
-When updating this file during kit maintenance:
-
-1. Fetch the current `llms.txt` index from the website (`awesome-copilot.github.com/llms.txt`) via web fetch (it is NOT in the repo root)
-2. Walk linked Learning Hub articles, example agents, skills, instructions, hooks, plugins, workflows, and cookbook entries
-3. Extract high-signal product facts: frontmatter keys, hard requirements, best-practice guidance, surface-specific caveats, deprecated patterns
-4. Compare extracted facts against the current snapshot sections below and update in place
-5. Update the "Last refresh date" in the metadata section
-6. If any upstream content is inaccessible, note it under a `### Unavailable Content` sub-section and keep previous facts
-
-### Expected Sections
-
-Each refresh should produce these sections with current upstream data:
-
-- **Sources Consulted** — upstream source with summary of what was confirmed
-- **High-Signal Product Facts** — frontmatter allowlist, hard requirements, best-practice guidance, surface-specific caveats, deprecated/sunset concerns
-- **Implications for Generation** — how upstream facts constrain or inform the generator
-- **Conflicts with Existing Kit Rules** — any contradictions between upstream and current kit behavior
-- **Recommended Follow-Up Changes** — actionable improvements based on new upstream data
+1. Fetch `llms.txt` from website (`awesome-copilot.github.com/llms.txt`)
+2. Walk linked articles, examples, cookbook entries
+3. Extract: frontmatter keys, hard requirements, best practices, caveats, deprecated patterns
+4. Update sections in place; update "Last refresh date"
+5. If content inaccessible, note under `### Unavailable Content` and keep previous facts
 - **Residual Risks** — known gaps or uncertainties after the refresh

@@ -32,7 +32,7 @@ The sections below provide generator-specific decision logic that supplements SK
 
 ## Generation Goal
 
-Produce the most complete and effective bundle that materially improves the user's chance of success across Apple engineering and agile delivery workflows.
+Produce the most effective bundle for this specific project's Apple engineering and agile delivery workflows.
 
 ## Context-Aware Generation
 
@@ -51,18 +51,13 @@ Before generating, consume the analyzer's output and read the kit's reference fi
 
 ## Fallback Assumptions And Technology Alignment
 
-Follow SKILL.md fallback defaults and alignment rule. The analyzer's Technology Alignment Profile is the authoritative source. Always override fallback defaults with codebase findings.
-
-When the project is in a migration state (e.g., UIKit → SwiftUI, Swift 5 → 6), note both current and target state so generated agents handle transitional code correctly.
+Use project-actual values from the analyzer's Technology Alignment Profile. Reference SKILL.md > Default Behavior for fallbacks when project state is unknown. When a migration is in progress (e.g., UIKit → SwiftUI, Swift 5 → 6), note both current and target state.
 
 ## Tool and MCP Usage Guidance
 
-Generated agents must actively leverage all available tools at runtime:
-
-- Frontmatter tool restrictions (`tools`, `mcp-servers`) are handled by the YAML Frontmatter Determinism Rules — do not duplicate that guidance here
-- Generated agents MUST include explicit guidance to prefer MCP tools over URL fetching when accessing external services (issue trackers, project management, CI/CD, documentation platforms, etc.)
-- When generating any agent that may interact with external services, include a tool preference rule: "When MCP servers are configured for external services (Jira, Linear, GitHub, Confluence, etc.), use the MCP tools to access those services. Do not attempt to fetch URLs directly for services that require authentication — use the appropriate MCP tool instead."
-- The implementor, investigator, business analyst, and orchestrator agents are especially likely to need external service access — ensure their instructions include MCP tool preference
+- Frontmatter tool restrictions (`tools`, `mcp-servers`) follow YAML Frontmatter Determinism Rules — do not duplicate here
+- Generated agents MUST prefer MCP tools over URL fetching for external services (issue trackers, CI/CD, docs platforms)
+- Include MCP tool preference rule in agents likely to access external services: implementor, investigator, business analyst, orchestrator
 
 ## Role Design Rules
 
@@ -75,16 +70,14 @@ Generated agents must actively leverage all available tools at runtime:
 ## Orchestrator Design Pattern
 
 When generating a conductor/orchestrator:
-1. Define workflow steps and role delegation per step
-2. Define gating criteria between steps
-3. Include intent-based auto-routing so users never manually pick sub-agents
-4. Include confirmation checkpoint between investigation and implementation
-5. Define micro-change lane for low-risk edits with explicit validation thresholds
-6. Define reviewer conflict resolution before escalating to user
-7. Define inter-agent iteration loops (e.g., implement → test → review → back to implement)
-8. Define hand-off contracts: inputs, outputs, pass/revise/blocked criteria
-9. Define workflow lanes beyond delivery when they are major user journeys (planning, investigation-only, review-only, test-only)
-10. Include structured completion reports
+1. Define workflow steps, role delegation, and gating criteria between steps
+2. Include intent-based auto-routing — users never manually pick sub-agents
+3. Include confirmation checkpoint between investigation and implementation
+4. Define micro-change lane for low-risk edits with explicit validation thresholds
+5. Define reviewer conflict resolution before escalating to user
+6. Define inter-agent iteration loops (implement → test → review → implement)
+7. Define hand-off contracts: inputs, outputs, pass/revise/blocked criteria
+8. Include structured completion reports
 
 ## Apple Domain Knowledge Placement Rule
 
@@ -107,11 +100,11 @@ Use scaffold templates from SKILL.md section "Build the Bundle". Fill all sectio
 ## Convention Consumption
 
 For each convention the analyzer discovered:
-- Reference by name in the generated agent with real file paths as examples
-- State decision rules based on the convention, not generic guidance
+- Reference by name with real file paths as examples
+- State decision rules grounded in the convention
 - Use analyzer-discovered `applyTo` candidates and validation commands
-- Use the Technology Alignment Profile as the authoritative source for Swift version, concurrency model, UI framework, testing framework, and persistence decisions — never fall back to kit defaults when project actuals are known
-- If the analyzer recommends a business domain registry, domain map, domain-scoped instructions, or business-domain skill, wire it explicitly into the generated agents' collaboration model. Business Analyst, Investigator, Implementor, Code Reviewer, and Dev Orchestrator must list it in their upstream inputs, downstream outputs, or decision rules. Do not assume agents will discover and use it implicitly.
+- Use the Technology Alignment Profile as authoritative source for Swift version, concurrency, UI framework, testing, persistence — never fall back to kit defaults when project actuals are known
+- If the analyzer recommends business domain artifacts, wire them explicitly into BA, Investigator, Implementor, Code Reviewer, and Dev Orchestrator inputs
 
 ## Build And Validation Command Rules
 
@@ -150,65 +143,70 @@ When generating implementor agents with verify-fix loops:
 
 When the analyzer's output includes Community Skill Discovery Results (community skills were found via any method — MCP live, web fetch, or registry baseline):
 
-1. **Embed extracted knowledge** into generated agents based on the analyzer's per-agent-role recommendations:
-   - Implementation patterns and conventions → Implementor agent instructions and relevant skills
-   - Testing patterns and best practices → Test Specialist agent instructions and testing skill
-   - Concurrency patterns (actors, Sendable, task groups, @concurrent) → Implementor, Test Specialist, and Platform Reviewer when concurrency is a project signal
-   - Architecture patterns → project context instruction or architecture skill
-   - Platform-specific knowledge (SwiftUI, SwiftData, accessibility, security) → relevant domain skills or path-scoped instructions following the Apple Domain Knowledge Placement Rule
-   - Security and performance patterns → relevant agent instructions or review pipeline (especially Platform Reviewer and Technical Reviewer)
-   - When embedding knowledge, include specific actionable rules, not just category references. For example, embed "use `#expect(throws:)` instead of do/catch for error testing" rather than "follow Swift Testing best practices"
-2. **Include community skill recommendations** in the generated user playbook:
-   - List ALL matching community skill repos with URLs and brief descriptions of what they provide — not just the ones whose knowledge was embedded
-   - Group recommendations by category for easy scanning
+1. **Embed extracted knowledge** into generated agents per the analyzer's per-agent-role recommendations. Place implementation/convention patterns → Implementor; testing patterns → Test Specialist; concurrency → Implementor + Test Specialist + Platform Reviewer; architecture → project context instruction; platform-specific → domain skills or path-scoped instructions per Apple Domain Knowledge Placement Rule; security/performance → review pipeline. Embed specific actionable rules (e.g., "use `#expect(throws:)` instead of do/catch"), not generic category references.
+2. **Include community skill recommendations** in the generated project context instruction or a dedicated community-skills instruction:
+   - List matching community skill repos with URLs and brief descriptions
    - Include installation instructions (npx commands) for each recommended skill
-   - Explain how community skills complement the generated agents: agents embed core knowledge from the snapshot, but community skills provide the latest community-maintained updates
-   - Note that community skills are independently maintained and evolve over time — users should periodically check for updates
+   - Note that community skills provide the latest community-maintained updates beyond what is embedded in agents
 3. **Respect project precedence**: When community skill knowledge conflicts with patterns found in the target project's actual code, always use the project's actual patterns. Note the conflict in the project context instruction as an awareness item.
 4. **Attribution**: When embedding knowledge derived from community skills, include a `## Community Skill Knowledge` section in each agent that received embedded knowledge. Reference the source category and skill repo, not just a generic note. Example: "SwiftUI patterns from [SwiftUI Pro](https://github.com/twostraws/SwiftUI-Agent-Skill), Swift Testing patterns from [Swift Testing Pro](https://github.com/twostraws/Swift-Testing-Agent-Skill)"
 5. **Coverage requirement**: The analyzer's community skill discovery results include matched categories with per-agent recommendations. Every matching category must be consumed by at least one generated agent or documented as intentionally skipped with rationale. Do not silently ignore matched categories.
-6. **Baseline-only mode**: If the analyzer used registry-only mode (no MCP, no web fetch), the embedded knowledge comes from the registry snapshot's "Key knowledge" column. This is still valuable — embed it. Note in the user playbook that community skill content was sourced from the kit's cached registry and users should install the actual skills for the latest updates.
+6. **Baseline-only mode**: If the analyzer used registry-only mode (no MCP, no web fetch), the embedded knowledge comes from the registry snapshot's "Key knowledge" column. This is still valuable — embed it. Note in the project context instruction that community skill content was sourced from the kit's cached registry and users should install the actual skills for the latest updates.
 
 ## SKILL.md Compliance Checklist
 
-Every Full Kit bundle must include the artifacts and patterns defined in SKILL.md. Reference the corresponding SKILL.md section for full specifications. Do not skip any item — if an item is genuinely inapplicable, document the rationale in the output contract.
+Every Full Kit bundle must satisfy these. Reference the SKILL.md section for full specs. If genuinely inapplicable, document rationale.
 
-| Required Artifact/Pattern | SKILL.md Section | Key Notes |
-|--------------------------|------------------|-----------|
-| Generation Principles (8 rules) | Generation Principles | Embed in every agent as actionable instructions, not paraphrased summaries |
-| Constitution with Phase -1 gates | Constitution Pattern | Use `constitution-template.md`; highest-authority document; reference actual project conventions |
-| Spec-driven pipeline (4 skills) | Spec-Driven Pipeline | Use spec/plan/tasks templates; wire into orchestrator; skip for trivial changes |
-| Separated review pipeline (4 agents) | Separated Review Pipeline | Short-circuit on Functional Reviewer BLOCKER; Platform Reviewer conditional on Swift files |
-| `handoffs:` in frontmatter | Handoffs Pattern | All delegating agents; exact display names; supplements `agents` field |
-| Evidence standard labels | Evidence Standard | All agents + constitution Article II; track assumption resolution |
-| Runtime docs (2 playbooks) | Runtime Docs Generation | Use playbook templates; reference actual agent names and prompts |
-| Bundle evolution + drift detection | Bundle Evolution Guidance, Drift Detection Guidance | In project context instruction; include steering loop, entropy management, five drift dimensions |
-| Review memory promotion | Review Memory Promotion | In orchestrator; track recurring findings ≥3 times → promote to instruction |
-| Hook assessment | Hooks Generation | When qualifying tools detected; validate against `hook-checklist.md` |
-| Generated file marker | Generated File Marking | `<!-- Generated by Apple Agent Builder Kit -->` after frontmatter `---`, never before |
-| Cross-session persistence | Cross-Session Persistence | In orchestrator for large tasks; repo memory for durable state |
-| Large task execution pattern | Large Task Execution Pattern | In orchestrator + implementor; decompose → persist plan → chunked execution |
-| Context persistence strategy | Context Persistence Strategy | Session memory for findings/plans; `manage_todo_list` for tracking; context compaction |
-| Context optimization | Context Optimization Rules | Three-layer model: `copilot-instructions.md` (40-80 lines) + project context (80-150 lines) + path-scoped + agent |
-| YAML frontmatter validity | YAML Frontmatter Generation | Per `copilot-docs-registry.md` allowlist; see Frontmatter Rules below |
-| Single-session completion rule | Single-Session Completion Rule | In generated orchestrators: complete work in one session, `vscode_askQuestions` for clarification, completion behavior before ending |
-| Harness engineering alignment | Harness Engineering Alignment | Feedforward/feedback in ecosystem, structured investigation output, agent legibility, steering loop, entropy management |
+| Required | SKILL.md Section | Key Notes |
+|----------|------------------|-----------|
+| 8 generation principles | Generation Principles | Embed as actionable instructions in every agent |
+| Constitution + Phase -1 gates | Constitution Pattern | Use template; reference actual project conventions |
+| Spec pipeline (4 skills) | Spec-Driven Pipeline | Use templates; wire into orchestrator; skip for trivial changes |
+| Review pipeline (4 agents) | Separated Review Pipeline | Short-circuit on Functional BLOCKER; Platform conditional on Swift files |
+| `handoffs:` frontmatter | Handoffs Pattern | All delegating agents; exact display names |
+| Evidence labels | Evidence Standard | All agents + constitution Article II |
+| Bundle evolution + drift | Bundle Evolution Guidance | In project context instruction; steering loop, entropy management |
+| Review memory promotion | Review Memory Promotion | In orchestrator; recurring findings ≥3× → promote to instruction |
+| Hook assessment | Hooks Generation | When qualifying tools detected; validate against checklist |
+| Generated file marker | Generated File Marking | After frontmatter `---`, never before |
+| Cross-session persistence | Cross-Session Persistence | In orchestrator; repo memory for durable state |
+| Large task pattern | Large Task Execution Pattern | Decompose → persist plan → chunked execution |
+| Context persistence | Context Persistence Strategy | Session memory + `manage_todo_list` + compaction |
+| Context optimization | Context Optimization Rules | Three-layer model; `copilot-instructions.md` 40-80 lines |
+| YAML frontmatter | YAML Frontmatter Generation | Per `copilot-docs-registry.md` allowlist |
+| Single-session completion | Single-Session Completion Rule | `vscode_askQuestions` for clarification; complete before ending |
+| Harness engineering | Harness Engineering Alignment | Feedforward/feedback, structured investigation, agent legibility |
+| Cross-reference wiring | Cross-Reference Wiring Rules (below) | Every file referenced by ≥1 other file |
+
+## Artifact Cross-Reference Wiring Rules
+
+Every generated file must be referenced by ≥1 other generated file. Unreferenced files are orphans — they will never be discovered at runtime.
+
+### Wiring Requirements
+
+- `spec-template.md` → Specify-Feature skill references it as output structure
+- `plan-template.md` → Plan-Implementation skill references it
+- `tasks-template.md` → Generate-Tasks skill references it
+- Investigation report template → Investigator agent or Investigation skill references it
+- Any generated template/checklist → ≥1 producer + ≥1 consumer reference it by path
+
+### Post-Generation Verification
+
+1. Every `.github/docs/<prefix>-*` file is referenced by ≥1 agent AND `copilot-instructions.md`
+2. Every `.github/templates/<prefix>/` file is referenced by ≥1 skill or agent
+3. No generated file exists without at least one inbound reference
 
 ## Generation Requirements
 
-Each non-trivial artifact must clearly define: mission, use-when, non-goals, operating model, decision rules, output contract, risks and anti-patterns.
+Each non-trivial artifact must define: mission, use-when, non-goals, operating model, decision rules, output contract, risks.
 
-**File hygiene**:
-- Emit valid YAML frontmatter only; omit optional keys when not needed
-- Verify no editor diagnostics remain before finalizing
-- Never leave unresolved `<...>` placeholders in generated non-template files
-- Do not persist intermediate working documents in the target project
+**File hygiene**: valid YAML frontmatter only; no editor diagnostics; no unresolved `<...>` placeholders in non-template files; no intermediate working documents left in target project.
 
-**YAML Frontmatter Rules**: Follow YAML Frontmatter Generation rules from SKILL.md exactly. Verify against the allowlist in `copilot-docs-registry.md` before emitting any key.
+**YAML Frontmatter Rules**: Follow SKILL.md exactly. Verify against `copilot-docs-registry.md` allowlist.
 
-**Clarification pattern**: Use `vscode_askQuestions` per SKILL.md Single-Session Completion Rule. Offer 2-4 choices with one recommended default, continue provisionally on the default.
+**Clarification**: Use `vscode_askQuestions` per Single-Session Completion Rule. Offer 2-4 choices with recommended default; continue provisionally on default.
 
-**Per-artifact requirements**: Include role-appropriate behavioral patterns per SKILL.md for each agent role. Define collaboration contracts (inputs, outputs, pass/revise/blocked criteria). For Apple artifacts, define platform, framework, concurrency, testing, and accessibility expectations where relevant. For linting tools, prefer instructions + agent validation steps; add hooks only when `hook-checklist.md` conditions are met.
+**Per-artifact requirements**: Role-appropriate behavioral patterns per SKILL.md. Collaboration contracts (inputs, outputs, pass/revise/blocked). Apple platform expectations where relevant. Linting: prefer instructions + agent validation; hooks only when `hook-checklist.md` conditions met.
 
 ## Dirty Worktree Rule
 
@@ -216,13 +214,12 @@ Do not block generation for unrelated modified/untracked files. Preserve unrelat
 
 ## Output Contract
 
-- Chosen architecture and why
-- Selected roles and why each exists
-- Collaboration model: workflow lanes, hand-off sequence, iteration loops, escalation points
+- Architecture rationale
+- Role selection justification
+- Collaboration model: lanes, hand-offs, iteration loops, escalation
 - Workflow-family coverage matrix
 - Created artifacts and purpose
-- Generated file naming scheme with project-derived prefix
-- Supporting artifact coverage (skills, prompts, instructions, templates, hook decision)
+- File naming scheme
 - Relationship to existing agents (if any)
 - Assumptions from analysis
 - Points the auditor should challenge
@@ -230,13 +227,12 @@ Do not block generation for unrelated modified/untracked files. Preserve unrelat
 ## Anti-Patterns
 
 - Generic mobile wording ignoring Apple frameworks
-- Assuming latest Swift/concurrency/UI defaults when the project's actual stack differs
-- Always generating every primitive regardless of need
+- Assuming latest Swift/concurrency/UI defaults when project stack differs
+- Generating every primitive regardless of need
 - One huge agent combining analysis, generation, and auditing
 - Descriptions too broad to trigger reliably
-- Generating agents that overlap with existing agents without resolving
-- Ignoring existing naming conventions
-- Creating a domain skill for every detected Apple technology area regardless of project usage — only create a domain skill when it earns its place through multi-agent reuse and strong project signal
-- Injecting Apple-specific guidance that cannot be traced back to analyzer evidence from code, config, tests, resources, or project metadata
-- Generating a business domain registry, domain map, or business-domain skill that no generated agent explicitly consumes
-- Leaving shared business rules scattered across agent prose only, with no stable shared source for business-heavy projects
+- Overlapping with existing agents without resolving
+- Creating domain skills for every Apple tech area regardless of project usage
+- Injecting Apple guidance not traceable to analyzer evidence
+- Generating business domain artifacts no agent explicitly consumes
+- Leaving shared business rules scattered across agent prose without a stable shared source

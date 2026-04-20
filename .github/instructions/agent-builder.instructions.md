@@ -15,13 +15,12 @@ Apply these rules when editing Copilot customization files in this repository.
 
 ## Frontmatter
 
-Follow all YAML frontmatter rules in SKILL.md. Additional rules for instruction file editing:
-- Only use frontmatter keys listed in the "Supported Frontmatter Keys" table in `copilot-docs-registry.md`
+Follow all YAML frontmatter rules in SKILL.md > YAML Frontmatter Generation. Verify keys against the allowlist in `copilot-docs-registry.md`.
+
+Additional rules specific to instruction file editing:
 - Use `applyTo` only for guidance that should load automatically; keep narrow
 - Consider `excludeAgent` to limit instruction to coding-agent or code-review usage
 - Quote `description` values when punctuation could break parsing
-- `agents` frontmatter MUST use inline JSON-style array with exact display names (`agents: ["Name A", "Name B"]`), NEVER block list syntax or filenames
-- `description` frontmatter MUST be a double-quoted string
 
 ## Writing Standard
 
@@ -35,13 +34,9 @@ Follow all YAML frontmatter rules in SKILL.md. Additional rules for instruction 
 
 ## Primitive Selection
 
-When creating a new customization file, start from the matching scaffold template in `.github/templates/agent-builder/`. Replace all placeholder text with project-specific content — never ship template boilerplate.
+Use the matching scaffold template in `.github/templates/agent-builder/`. Replace all `<...>` placeholders with project-specific content.
 
-- Agent: `agent-template.md` — persona, context isolation, multi-stage workflow
-- Skill: `skill-template.md` — reusable workflow with steps, templates, or assets
-- Instruction: `instruction-template.md` — always-on guidance for matching contexts
-- Prompt: `prompt-template.md` — short user-facing entry point
-- Hook: `hook-checklist.md` — deterministic enforcement only when necessary and safe
+- Agent: `agent-template.md` | Skill: `skill-template.md` | Instruction: `instruction-template.md` | Prompt: `prompt-template.md` | Hook: `hook-checklist.md`
 
 For primitive selection decisions, apply `primitive-decision-matrix.md`. For role naming, reference `apple-role-catalog.md`.
 
@@ -91,8 +86,8 @@ Workflow-specific guidance belongs in SKILL.md, agents, skills, prompts, and pat
 Generated bundles must comply with all artifact requirements and behavioral patterns in SKILL.md. The generator's SKILL.md Compliance Checklist and the auditor's audit rubric verify compliance. Key invariants for anyone editing generated files:
 
 - Generated agents must embed the 8 Generation Principles from SKILL.md as actionable instructions
-- Generated agents must follow SKILL.md > Single-Session Completion Rule (structured clarification via `vscode_askQuestions`), SKILL.md > Handoffs Pattern (`handoffs:` in frontmatter for delegating agents), and SKILL.md > Generated File Marking (marker placement rules)
-- Bundle context model: follow Context Optimization Rules in SKILL.md — no duplication between layers
+- Generated agents must follow SKILL.md behavioral patterns: Single-Session Completion Rule, Handoffs Pattern, Generated File Marking, Context Optimization Rules
+- Bundle context model: no duplication between layers (per SKILL.md > Context Optimization Rules)
 
 Before finalizing changes to the kit:
 - validate generated or edited customization files against `.github/templates/agent-builder/agent-audit-rubric.md`

@@ -23,7 +23,7 @@ When intent is ambiguous, check whether the user referenced existing files or de
 
 Phase 3 auto-skips when analysis provides enough context.
 
-Complete the entire workflow through delivery in this session. When user input is needed, use `vscode_askQuestions` to ask with structured options and wait for the response, then continue. Never write questions as plain text. Never leave generation incomplete.
+Complete the entire workflow in this session. Use `vscode_askQuestions` for structured user input — never plain text questions. Never leave generation incomplete.
 
 ---
 

@@ -26,7 +26,6 @@ Use `.github/templates/agent-builder/agent-audit-rubric.md` as a quick-reference
 | Instructions | 3+ |
 | Prompts | 3+ (delivery + spec + secondary) |
 | Templates | 3+ (delivery + spec/plan/tasks) |
-| Docs | 2 (user playbook + review playbook) |
 | Hook decision | 1 |
 | Handoffs in frontmatter | All delegating agents |
 | Evidence standard | Embedded in agents + in constitution |
@@ -65,17 +64,17 @@ Do outputs stay phase-bounded and concise? Are hand-offs summarized as deltas wi
 
 ## Verdict Policy
 
-- `PASS`: every finding — major and minor — is resolved. No open issues remain.
-- `REVISE`: any finding still open, regardless of severity. Send back with specific fix instructions for every open item.
+- `PASS`: every finding resolved. No open issues.
+- `REVISE`: any finding open. Send back with specific fix instructions per item.
 - `BLOCKED`: missing information prevents credible audit.
 
-Do not PASS with "accepted" or "acknowledged" minor issues. Every finding must be fixed in the bundle before PASS is issued. The only items allowed in the final output under "Residual Risks" are genuine uncertainties that cannot be resolved by improving the generated artifacts (e.g., future platform changes, unavailable documentation sources). Fixable weaknesses are never residual risks — they are REVISE findings.
+Do not accept minor issues. Fixable weaknesses are REVISE findings, never "residual risks". Only genuine uncertainties (e.g., future platform changes) qualify as residual risks.
 
 ## Output Contract
 
 - Verdict
 - Score by dimension (including ecosystem coherence)
-- Cross-reference integrity status (orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, project context instruction presence, `copilot-instructions.md` presence and quality)
+- Cross-reference integrity status (orphaned templates, orphaned skills, missing bidirectional references, residual intermediate files, project context instruction presence, `copilot-instructions.md` presence and quality). Specifically verify: every `.github/templates/<prefix>/*` file has ≥1 inbound reference from a skill or agent.
 - Supporting artifact coverage assessment (`copilot-instructions.md`, project context instruction, skills, instructions, prompts, templates)
 - Behavioral pattern compliance by role
 - Workflow-family coverage matrix with pass/revise per family

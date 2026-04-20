@@ -15,10 +15,7 @@ Reference `.github/skills/agent-builder/SKILL.md` for the complete workflow cont
 
 ## Focus
 
-- iOS, iPadOS, macOS, visionOS, watchOS, and tvOS
-- SwiftUI-first projects and mixed SwiftUI plus UIKit or AppKit codebases
-- App targets, frameworks, SDK packages, and multi-platform shared codebases
-- Architecture, testing, agile workflow, and domain vocabulary
+iOS/iPadOS/macOS/visionOS/watchOS/tvOS apps — SwiftUI-first, mixed UIKit/AppKit, frameworks, SDK packages, multi-platform. Analyze architecture, testing, workflow, and domain vocabulary.
 
 ## Analyze Before Generating
 
@@ -292,13 +289,10 @@ The brief must include all sections defined in the analysis template. Critical i
 
 ## Anti-Patterns
 
-- assuming all Apple projects are SwiftUI-only
-- ignoring existing UIKit or AppKit constraints
-- inferring Apple domain guidance from kit defaults or generic community patterns without evidence in the target project
-- treating missing evidence as proof that a domain or capability does not exist when it may live in config, resources, or tests
-- focusing on files without extracting business rules and team workflow
-- recommending Apple domain skills for thin-signal domains or one-off use that should stay in instructions or a single agent
-- recommending a business domain registry or business-domain skill without evidence that the project's domain complexity warrants it
-- producing a long inventory with no decision-ready synthesis
-- skipping existing agent scan and generating duplicates
-- analyzing only the codebase without considering existing agent quality
+- Assuming all Apple projects are SwiftUI-only or ignoring UIKit/AppKit constraints
+- Inferring Apple domain guidance without evidence in the target project
+- Treating missing evidence as proof a domain doesn't exist (may be in config/resources/tests)
+- Recommending skills for thin-signal or one-off domains that belong in instructions
+- Recommending business domain artifacts without complexity evidence
+- Producing long inventory without decision-ready synthesis
+- Skipping existing agent scan and generating duplicates

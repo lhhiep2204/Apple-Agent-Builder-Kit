@@ -23,7 +23,7 @@ Do not start with a broad interview — extract context by analyzing the codebas
 
 Do not add extra top-level phases for internal setup. Phase 3 auto-skips when no ambiguity remains.
 
-Complete the entire workflow through delivery in this session. When user input is needed, use `vscode_askQuestions` to ask with structured options and wait for the response, then continue. Never write questions as plain text. Never leave generation incomplete.
+Complete the entire workflow in this session. Use `vscode_askQuestions` for structured user input — never plain text questions. Never leave generation incomplete.
 
 ## Target Roles
 

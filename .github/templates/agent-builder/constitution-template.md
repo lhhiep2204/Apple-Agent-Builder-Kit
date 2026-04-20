@@ -25,6 +25,8 @@ This constitution defines the non-negotiable rules governing the <project-name> 
 
 ## Article II: Evidence Standard
 
+<!-- Labels and enforcement flow defined in SKILL.md > Evidence Standard. Keep this article aligned. -->
+
 Every business-rule claim, investigation finding, and review verdict must be backed by evidence:
 
 | Label | Meaning |

@@ -40,7 +40,7 @@
 
 - local build commands:
 - local test commands:
-- default simulator destination: <derived from deployment target and Xcode version — never hardcode a device model; use the project config to determine the correct default>
+- default simulator destination: <derived from deployment target + Xcode version; never hardcode a device model>
 - multi-target or multi-scheme checks:
 - simulator or environment constraints:
 - deterministic commands safe enough for hook consideration:
@@ -175,7 +175,7 @@
 | Persistence | <detected> | SwiftData | <yes/no> |
 | Migration state | <detected: stable or migrating X→Y> | n/a | <note> |
 
-Generated agents must align to the "Project actual" column. Note deviations explicitly so the generator does not apply kit fallback defaults where the project uses different technology.
+Generated agents must align to "Project actual". Note deviations so the generator does not apply kit fallback defaults.
 
 ## Apple Domain Coverage Matrix
 

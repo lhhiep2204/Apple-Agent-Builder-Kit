@@ -65,3 +65,7 @@ Use this when generating a plan-template for a target project's spec-driven pipe
 - Risk assessment should be honest — do not minimize genuine risks
 - The template lives in `.github/templates/<prefix>/` in the generated bundle
 - Phase -1 gate checklist connects to the constitution's gates
+
+## Cross-Reference Wiring (Required)
+
+The generated plan template must be referenced by the Plan-Implementation skill and the Dev Orchestrator. Full wiring rules and verification checklist in SKILL.md > Template Cross-Reference Requirements. Orphan check in `agent-audit-rubric.md` > Template Orphan Check.

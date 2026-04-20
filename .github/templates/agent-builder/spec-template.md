@@ -67,3 +67,7 @@ Each criterion must be independently testable:
 - Domain rules must include evidence labels per the evidence standard
 - Edge cases should be populated from investigator findings when available
 - The template lives in `.github/templates/<prefix>/` in the generated bundle
+
+## Cross-Reference Wiring (Required)
+
+The generated spec template must be referenced by the Specify-Feature skill and the Dev Orchestrator. Full wiring rules and verification checklist in SKILL.md > Template Cross-Reference Requirements. Orphan check in `agent-audit-rubric.md` > Template Orphan Check.
